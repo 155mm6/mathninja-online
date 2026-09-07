@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Математический Платформер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 100vw;
+            max-height: 100vh;
+        }
+
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%);
+            width: 100%;
+            height: auto;
+        }
+
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            color: white;
+            font-size: 18px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        #ui > div:first-child {
+            margin-bottom: 5px;
+        }
+
+        .ability {
+            display: inline-block;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            padding: 8px 12px;
+            margin: 3px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .ability.locked {
+            opacity: 0.4;
+            filter: grayscale(100%);
+        }
+
+        #instructions {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 28px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 100;
+        }
+
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        #mobileControls {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: none;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 10;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.9);
+            border: 3px solid #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            user-select: none;
+            touch-action: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .control-btn:active {
+            transform: scale(0.9);
+            background: rgba(200,200,200,0.9);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+                margin: 0;
+            }
+
+            #gameContainer {
+                border-radius: 0;
+                width: 100vw;
+                height: 100vh;
+            }
+
+            #mobileControls {
+                display: flex;
+            }
+
+            #instructions {
+                top: 50px;
+                font-size: 10px;
+                padding: 6px 12px;
+                white-space: normal;
+                max-width: 80%;
+            }
+
+            #ui {
+                font-size: 12px;
+            }
+
+            .ability {
+                font-size: 10px;
+                padding: 5px 8px;
+                margin: 2px;
+            }
+
+            #message {
+                font-size: 20px;
+                padding: 20px 30px;
+                max-width: 80%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .control-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            #ui {
+                font-size: 10px;
+            }
+
+            .ability {
+                font-size: 9px;
+                padding: 4px 6px;
+            }
+
+            #instructions {
+                font-size: 9px;
+                padding: 5px 10px;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            #gameContainer {
+                max-width: 1200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1200" height="700"></canvas>
+
+        <div id="ui">
+            <div>Способности:</div>
+            <div id="abilities">
+                <span class="ability locked" id="multiply">✕2 Умножение</span>
+                <span class="ability locked" id="divide">÷2 Деление</span>
+                <span class="ability locked" id="add">+5 Сложение</span>
+            </div>
+        </div>
+
+        <div id="instructions">
+            ← → Движение | Пробел - Прыжок | 1,2,3 - Использовать способности
+        </div>
+
+        <div id="mobileControls">
+            <div class="control-group">
+                <div class="control-btn" id="leftBtn">←</div>
+                <div class="control-btn" id="rightBtn">→</div>
+            </div>
+            <div class="control-group">
+                <div class="control-btn" id="jumpBtn">⬆</div>
+            </div>
+        </div>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Адаптивный размер canvas
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const maxWidth = 1200;
+            const maxHeight = 700;
+            const aspectRatio = maxWidth / maxHeight;
+
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+
+            if (width > maxWidth) width = maxWidth;
+            if (height > maxHeight) height = maxHeight;
+
+            if (width / height > aspectRatio) {
+                width = height * aspectRatio;
+            } else {
+                height = width / aspectRatio;
+            }
+
+            canvas.width = maxWidth;
+            canvas.height = maxHeight;
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Состояние игры
+        const game = {
+            player: {
+                x: 100,
+                y: 500,
+                width: 40,
+                height: 40,
+                velocityX: 0,
+                velocityY: 0,
+                speed: 5,
+                jumpPower: 15,
+                isJumping: false,
+                color: '#FF6B6B'
+            },
+            camera: {
+                x: 0,
+                y: 0
+            },
+            abilities: {
+                multiply: false,
+                divide: false,
+                add: false
+            },
+            keys: {},
+            platforms: [],
+            doors: [],
+            abilityPickups: [],
+            obstacles: [],
+            gravity: 0.8
+        };
+
+        // Создание карты мира
+        function createWorld() {
+            // Стартовая зона
+            game.platforms.push(
+                { x: 0, y: 650, width: 400, height: 50, color: '#4CAF50' },
+                { x: 450, y: 550, width: 150, height: 20, color: '#4CAF50' },
+                { x: 650, y: 450, width: 150, height: 20, color: '#4CAF50' }
+            );
+
+            // Первая дверь (требует умножение)
+            game.doors.push({
+                x: 800,
+                y: 350,
+                width: 80,
+                height: 100,
+                requiredAbility: 'multiply',
+                unlocked: false,
+                color: '#FF5722',
+                targetX: 1000,
+                targetY: 600,
+                question: '2 × 3 = ?',
+                answer: 6
+            });
+
+            // Пикап умножения
+            game.abilityPickups.push({
+                x: 700,
+                y: 380,
+                width: 40,
+                height: 40,
+                type: 'multiply',
+                collected: false,
+                label: '×2'
+            });
+
+            // Зона с умножением (после двери)
+            game.platforms.push(
+                { x: 1000, y: 650, width: 300, height: 50, color: '#4CAF50' },
+                { x: 1350, y: 550, width: 100, height: 20, color: '#4CAF50', multiplied: false },
+                { x: 1350, y: 450, width: 100, height: 20, color: '#4CAF50', multiplied: false }
+            );
+
+            // Препятствие для деления
+            game.obstacles.push({
+                x: 1500,
+                y: 550,
+                width: 100,
+                height: 100,
+                color: '#9C27B0',
+                divided: false,
+                label: '÷'
+            });
+
+            // Пикап деления
+            game.abilityPickups.push({
+                x: 1550,
+                y: 480,
+                width: 40,
+                height: 40,
+                type: 'divide',
+                collected: false,
+                label: '÷2'
+            });
+
+            // Дверь с делением
+            game.doors.push({
+                x: 1700,
+                y: 450,
+                width: 80,
+                height: 100,
+                requiredAbility: 'divide',
+                unlocked: false,
+                color: '#9C27B0',
+                targetX: 1900,
+                targetY: 600,
+                question: '10 ÷ 2 = ?',
+                answer: 5
+            });
+
+            // Финальная зона
+            game.platforms.push(
+                { x: 1900, y: 650, width: 400, height: 50, color: '#FFD700' },
+                { x: 2100, y: 550, width: 150, height: 20, color: '#FFD700' }
+            );
+
+            // Пикап сложения
+            game.abilityPickups.push({
+                x: 2000,
+                y: 580,
+                width: 40,
+                height: 40,
+                type: 'add',
+                collected: false,
+                label: '+5'
+            });
+
+            // Финальная дверь
+            game.doors.push({
+                x: 2300,
+                y: 450,
+                width: 100,
+                height: 100,
+                requiredAbility: 'add',
+                unlocked: false,
+                color: '#FFD700',
+                targetX: 100,
+                targetY: 600,
+                question: '7 + 8 = ?',
+                answer: 15,
+                isWinDoor: true
+            });
+        }
+
+        // Управление
+        document.addEventListener('keydown', (e) => {
+            game.keys[e.code] = true;
+
+            if (e.code === 'Space' && !game.player.isJumping) {
+                game.player.velocityY = -game.player.jumpPower;
+                game.player.isJumping = true;
+            }
+
+            // Использование способностей
+            if (e.code === 'Digit1' && game.abilities.multiply) {
+                useMultiply();
+            }
+            if (e.code === 'Digit2' && game.abilities.divide) {
+                useDivide();
+            }
+            if (e.code === 'Digit3' && game.abilities.add) {
+                useAdd();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            game.keys[e.code] = false;
+        });
+
+        // Мобильное управление
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        const jumpBtn = document.getElementById('jumpBtn');
+
+        // Левая кнопка
+        leftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            game.keys['ArrowLeft'] = true;
+        });
+        leftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            game.keys['ArrowLeft'] = false;
+        });
+
+        // Правая кнопка
+        rightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            game.keys['ArrowRight'] = true;
+        });
+        rightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            game.keys['ArrowRight'] = false;
+        });
+
+        // Кнопка прыжка
+        jumpBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!game.player.isJumping) {
+                game.player.velocityY = -game.player.jumpPower;
+                game.player.isJumping = true;
+            }
+        });
+
+        // Тап по способностям для активации на мобильных
+        document.getElementById('multiply').addEventListener('click', () => {
+            if (game.abilities.multiply) useMultiply();
+        });
+        document.getElementById('divide').addEventListener('click', () => {
+            if (game.abilities.divide) useDivide();
+        });
+        document.getElementById('add').addEventListener('click', () => {
+            if (game.abilities.add) useAdd();
+        });
+
+        // Использование способностей
+        function useMultiply() {
+            game.platforms.forEach(platform => {
+                if (!platform.multiplied &&
+                    Math.abs(platform.x - game.player.x) < 200) {
+                    platform.width *= 2;
+                    platform.multiplied = true;
+                    createParticles(platform.x, platform.y, '#FF6B6B');
+                    showMessage('×2! Платформа удвоена!', 1000);
+                }
+            });
+        }
+
+        function useDivide() {
+            game.obstacles.forEach(obstacle => {
+                if (!obstacle.divided &&
+                    Math.abs(obstacle.x - game.player.x) < 200) {
+                    obstacle.height /= 2;
+                    obstacle.y += obstacle.height;
+                    obstacle.divided = true;
+                    createParticles(obstacle.x, obstacle.y, '#9C27B0');
+                    showMessage('÷2! Препятствие уменьшено!', 1000);
+                }
+            });
+        }
+
+        function useAdd() {
+            game.player.jumpPower = 20;
+            setTimeout(() => {
+                game.player.jumpPower = 15;
+            }, 5000);
+            showMessage('+5! Прыжок усилен на 5 секунд!', 1000);
+        }
+
+        // Обновление игры
+        function update() {
+            // Движение игрока
+            if (game.keys['ArrowLeft']) {
+                game.player.velocityX = -game.player.speed;
+            } else if (game.keys['ArrowRight']) {
+                game.player.velocityX = game.player.speed;
+            } else {
+                game.player.velocityX = 0;
+            }
+
+            // Применение гравитации
+            game.player.velocityY += game.gravity;
+
+            // Обновление позиции
+            game.player.x += game.player.velocityX;
+            game.player.y += game.player.velocityY;
+
+            // Коллизия с платформами
+            game.player.isJumping = true;
+            game.platforms.forEach(platform => {
+                if (checkCollision(game.player, platform)) {
+                    if (game.player.velocityY > 0) {
+                        game.player.y = platform.y - game.player.height;
+                        game.player.velocityY = 0;
+                        game.player.isJumping = false;
+                    }
+                }
+            });
+
+            // Коллизия с препятствиями
+            game.obstacles.forEach(obstacle => {
+                if (checkCollision(game.player, obstacle)) {
+                    game.player.x -= game.player.velocityX * 2;
+                }
+            });
+
+            // Сбор способностей
+            game.abilityPickups.forEach(pickup => {
+                if (!pickup.collected && checkCollision(game.player, pickup)) {
+                    pickup.collected = true;
+                    game.abilities[pickup.type] = true;
+                    document.getElementById(pickup.type).classList.remove('locked');
+                    createParticles(pickup.x, pickup.y, '#FFD700');
+                    showMessage(`Получена способность: ${pickup.label}!`, 2000);
+                }
+            });
+
+            // Взаимодействие с дверями
+            game.doors.forEach(door => {
+                if (checkCollision(game.player, door)) {
+                    if (game.abilities[door.requiredAbility] && !door.unlocked) {
+                        const userAnswer = prompt(door.question);
+                        if (parseInt(userAnswer) === door.answer) {
+                            door.unlocked = true;
+                            game.player.x = door.targetX;
+                            game.player.y = door.targetY;
+                            createParticles(door.x, door.y, '#4CAF50');
+
+                            if (door.isWinDoor) {
+                                showMessage('🎉 Поздравляю! Ты прошёл игру! 🎉', 5000);
+                            } else {
+                                showMessage('✓ Правильно! Дверь открыта!', 2000);
+                            }
+                        } else {
+                            showMessage('✗ Попробуй ещё раз!', 1500);
+                            game.player.x -= 50;
+                        }
+                    } else if (!game.abilities[door.requiredAbility]) {
+                        showMessage(`Нужна способность: ${door.requiredAbility}`, 1500);
+                        game.player.x -= 50;
+                    }
+                }
+            });
+
+            // Камера следует за игроком
+            game.camera.x = game.player.x - canvas.width / 3;
+            game.camera.y = 0;
+
+            // Ограничение падения
+            if (game.player.y > canvas.height) {
+                game.player.y = 500;
+                game.player.x = 100;
+                showMessage('Упс! Начнём сначала', 1000);
+            }
+        }
+
+        // Отрисовка
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Фон
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.translate(-game.camera.x, -game.camera.y);
+
+            // Платформы
+            game.platforms.forEach(platform => {
+                ctx.fillStyle = platform.color;
+                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                ctx.strokeStyle = '#2E7D32';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+            });
+
+            // Препятствия
+            game.obstacles.forEach(obstacle => {
+                ctx.fillStyle = obstacle.color;
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 30px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(obstacle.label, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 10);
+            });
+
+            // Двери
+            game.doors.forEach(door => {
+                if (!door.unlocked) {
+                    ctx.fillStyle = door.color;
+                    ctx.fillRect(door.x, door.y, door.width, door.height);
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 40px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('🚪', door.x + door.width/2, door.y + door.height/2 + 15);
+                }
+            });
+
+            // Пикапы способностей
+            game.abilityPickups.forEach(pickup => {
+                if (!pickup.collected) {
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(pickup.x + pickup.width/2, pickup.y + pickup.height/2,
+                           pickup.width/2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#FF6B00';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'bold 20px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(pickup.label, pickup.x + pickup.width/2, pickup.y + pickup.height/2 + 7);
+                }
+            });
+
+            // Игрок
+            ctx.fillStyle = game.player.color;
+            ctx.fillRect(game.player.x, game.player.y, game.player.width, game.player.height);
+
+            // Лицо игрока
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(game.player.x + 12, game.player.y + 12, 4, 0, Math.PI * 2);
+            ctx.arc(game.player.x + 28, game.player.y + 12, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(game.player.x + 20, game.player.y + 25, 8, 0, Math.PI);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // Проверка коллизий
+        function checkCollision(rect1, rect2) {
+            return rect1.x < rect2.x + rect2.width &&
+                   rect1.x + rect1.width > rect2.x &&
+                   rect1.y < rect2.y + rect2.height &&
+                   rect1.y + rect1.height > rect2.y;
+        }
+
+        // Создание частиц
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = (x - game.camera.x) + 'px';
+                particle.style.top = (y - game.camera.y) + 'px';
+                particle.style.width = '5px';
+                particle.style.height = '5px';
+                particle.style.background = color;
+                particle.style.borderRadius = '50%';
+                document.getElementById('gameContainer').appendChild(particle);
+
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 3 + 2;
+                const vx = Math.cos(angle) * speed;
+                const vy = Math.sin(angle) * speed;
+
+                let px = parseFloat(particle.style.left);
+                let py = parseFloat(particle.style.top);
+
+                const animateParticle = () => {
+                    px += vx;
+                    py += vy;
+                    particle.style.left = px + 'px';
+                    particle.style.top = py + 'px';
+                    particle.style.opacity = parseFloat(particle.style.opacity || 1) - 0.02;
+
+                    if (parseFloat(particle.style.opacity) > 0) {
+                        requestAnimationFrame(animateParticle);
+                    } else {
+                        particle.remove();
+                    }
+                };
+                animateParticle();
+            }
+        }
+
+        // Показ сообщений
+        function showMessage(text, duration) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.style.display = 'block';
+
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, duration);
+        }
+
+        // Игровой цикл
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Запуск игры
+        createWorld();
+        gameLoop();
+
+        // Приветственное сообщение
+        setTimeout(() => {
+            showMessage('Собери способности и открой все двери!', 3000);
+        }, 500);
+    </script>
+</body>
+</html>

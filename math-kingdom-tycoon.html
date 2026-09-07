@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Математическое королевство - Tycoon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #4A90E2 50%, #1E3A8A 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ОБЛАКА */
+        .clouds {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.8;
+            animation: float 60s infinite linear;
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+        }
+
+        .cloud1 {
+            width: 100px;
+            height: 40px;
+            top: 30px;
+            left: -100px;
+        }
+
+        .cloud1::before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 10px;
+        }
+
+        .cloud1::after {
+            width: 60px;
+            height: 40px;
+            top: -15px;
+            right: 10px;
+        }
+
+        .cloud2 {
+            width: 120px;
+            height: 50px;
+            top: 80px;
+            left: -150px;
+            animation-delay: 20s;
+        }
+
+        .cloud2::before {
+            width: 60px;
+            height: 60px;
+            top: -30px;
+            left: 15px;
+        }
+
+        .cloud2::after {
+            width: 70px;
+            height: 50px;
+            top: -20px;
+            right: 15px;
+        }
+
+        @keyframes float {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(100vw + 200px)); }
+        }
+
+        /* ВОЛНЫ */
+        .waves {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            width: 200%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,60 Q300,0 600,60 T1200,60 L1200,120 L0,120 Z" fill="%234FC3F7" opacity="0.3"/></svg>') repeat-x;
+            animation: wave 10s linear infinite;
+        }
+
+        .wave:nth-child(2) {
+            animation: wave 15s linear infinite reverse;
+            opacity: 0.5;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ЗАГОЛОВОК */
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 3em;
+            color: #fff;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.5);
+            margin-bottom: 5px;
+            animation: titleGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes titleGlow {
+            0%, 100% { text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.5); }
+            50% { text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.4), 0 0 60px rgba(255, 215, 0, 0.8); }
+        }
+
+        .subtitle {
+            font-size: 1.5em;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* СТАТИСТИКА */
+        .stats-panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 250, 240, 0.95) 100%);
+            border-radius: 25px;
+            padding: 15px 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            border: 3px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            justify-content: center;
+        }
+
+        .stat-icon {
+            font-size: 1.8em;
+            animation: iconBounce 2s ease-in-out infinite;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .combo-indicator {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FFA500 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            animation: comboGlow 1s ease-in-out infinite;
+        }
+
+        @keyframes comboGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(255, 165, 0, 0.8); }
+        }
+
+        /* ГЛАВНАЯ СЕКЦИЯ */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* ПАНЕЛИ */
+        .panel {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 248, 255, 0.95) 100%);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(100, 200, 255, 0.5);
+        }
+
+        .panel-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
+        }
+
+        /* ОСТРОВ С КОРОЛЕВСТВОМ */
+        .island-container {
+            position: relative;
+            background: radial-gradient(ellipse at center, #1E90FF 0%, #0066CC 100%);
+            border-radius: 20px;
+            padding: 30px;
+            min-height: 550px;
+            overflow: hidden;
+            box-shadow: inset 0 5px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ОСТРОВ - КРУГЛЫЕ ЯЧЕЙКИ */
+        .island {
+            position: relative;
+            background: radial-gradient(circle, #8FBC8F 0%, #3CB371 50%, #228B22 100%);
+            border-radius: 50%;
+            width: 95%;
+            max-width: 650px;
+            aspect-ratio: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), inset 0 -10px 30px rgba(0, 0, 0, 0.2);
+            border: 5px solid #D2B48C;
+            gap: 8px;
+        }
+
+        .island::before {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            height: 20px;
+            background: radial-gradient(ellipse at center, rgba(139, 69, 19, 0.6) 0%, transparent 100%);
+            border-radius: 50%;
+            filter: blur(8px);
+            z-index: -1;
+        }
+
+        /* КРУГЛЫЕ ЯЧЕЙКИ ЗДАНИЙ */
+        .building-slot {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px dashed rgba(139, 69, 19, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+
+        .building-slot:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+            border-color: rgba(139, 69, 19, 0.6);
+        }
+
+        .building-slot.built {
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px solid #8B4513;
+            animation: buildingAppear 0.6s ease;
+            cursor: default;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .building-slot.built:hover {
+            transform: scale(1.15) translateY(-3px);
+        }
+
+        @keyframes buildingAppear {
+            0% {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+            60% {
+                transform: scale(1.2) rotate(10deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .building-income {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 0.4em;
+            font-weight: bold;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ПЕРСОНАЖ */
+        .character {
+            position: absolute;
+            bottom: 30px;
+            font-size: 3em;
+            animation: characterWalk 4s ease-in-out infinite;
+            z-index: 10;
+            filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.5));
+        }
+
+        @keyframes characterWalk {
+            0%, 100% { transform: translateX(-100px) translateY(0); }
+            50% { transform: translateX(100px) translateY(-10px); }
+        }
+
+        /* ПИТОМЕЦ */
+        .pet-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            border: 3px solid #FFD700;
+        }
+
+        .pet-icon {
+            font-size: 3em;
+            margin-bottom: 5px;
+        }
+
+        .pet-level {
+            font-size: 1em;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .pet-xp-bar {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .pet-xp-fill {
+            background: linear-gradient(90deg, #FF6B6B, #FFA500);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        /* РЕГИОН */
+        .region-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ПАНЕЛЬ ДЕЙСТВИЙ */
+        .action-btn {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-bottom: 15px;
+            width: 100%;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .action-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(255, 107, 107, 0.5);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .action-btn.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            box-shadow: 0 8px 20px rgba(56, 239, 125, 0.4);
+        }
+
+        /* СОБЫТИЯ */
+        .event-panel {
+            background: linear-gradient(135deg, #FFE5B4 0%, #FFDAB9 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 3px solid #FF6B6B;
+            box-shadow: 0 0 30px rgba(255, 107, 107, 0.5);
+            animation: eventPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes eventPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .event-title {
+            font-size: 1.8em;
+            color: #FF6B6B;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .event-desc {
+            font-size: 1.2em;
+            color: #333;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .event-reward {
+            font-size: 1.3em;
+            color: #4CAF50;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* ВОПРОС */
+        .question-box {
+            background: linear-gradient(135deg, #FFF9E6 0%, #FFF4CC 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: none;
+            box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.1);
+            border: 3px solid #FFD700;
+        }
+
+        .question-box.active {
+            display: block;
+            animation: questionAppear 0.4s ease;
+        }
+
+        @keyframes questionAppear {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .question-text {
+            font-size: 2em;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .answer-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 1.5em;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .answer-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .answer-btn.correct {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            animation: correctPulse 0.6s ease;
+        }
+
+        .answer-btn.wrong {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            animation: shake 0.6s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* МАГАЗИН */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .shop-item {
+            background: linear-gradient(135deg, #FFE5B4 0%, #FFDAB9 100%);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .shop-item:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+
+        .shop-item.affordable {
+            border-color: #4CAF50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+
+        .shop-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .shop-icon {
+            font-size: 3em;
+            margin-bottom: 8px;
+        }
+
+        .shop-name {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .shop-cost {
+            font-size: 1em;
+            color: #FF6B6B;
+            font-weight: bold;
+        }
+
+        .shop-income {
+            font-size: 0.9em;
+            color: #4CAF50;
+            margin-top: 5px;
+        }
+
+        /* МОДАЛЬНОЕ ОКНО */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #FFF 0%, #FFF9E6 100%);
+            border-radius: 25px;
+            padding: 30px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 5px solid #FFD700;
+            animation: modalSlide 0.4s ease;
+            position: relative;
+        }
+
+        @keyframes modalSlide {
+            0% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-title {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #FFF 0%, #FFF9E6 100%);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            z-index: 1001;
+            max-width: 500px;
+            border: 5px solid #FFD700;
+        }
+
+        .notification.show {
+            animation: notificationShow 0.5s ease forwards;
+        }
+
+        @keyframes notificationShow {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-180deg); }
+            70% { transform: translate(-50%, -50%) scale(1.1) rotate(10deg); }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+        }
+
+        .notification-title {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .notification-text {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .notification-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.3em;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .building-slot {
+                width: 60px;
+                height: 60px;
+                font-size: 2em;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2em;
+            }
+
+            .stats-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .building-slot {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5em;
+            }
+
+            .island {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ОБЛАКА -->
+    <div class="clouds">
+        <div class="cloud cloud1"></div>
+        <div class="cloud cloud2"></div>
+    </div>
+
+    <!-- ВОЛНЫ -->
+    <div class="waves">
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="container">
+        <!-- ЗАГОЛОВОК -->
+        <div class="header">
+            <h1 class="title">👑 Математическое королевство 👑</h1>
+            <div class="subtitle" id="regionTitle">Деревня</div>
+        </div>
+
+        <!-- СТАТИСТИКА -->
+        <div class="stats-panel">
+            <div class="stat-item">
+                <span class="stat-icon">🪙</span>
+                <span id="coins">20</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">⭐</span>
+                <span>Ур. <span id="level">1</span></span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon">👥</span>
+                <span id="population">1</span>
+            </div>
+            <div class="stat-item combo-indicator" id="comboDisplay" style="display: none;">
+                🔥 Серия: <span id="comboCount">0</span>
+            </div>
+        </div>
+
+        <!-- ГЛАВНАЯ СЕКЦИЯ -->
+        <div class="main-content">
+            <!-- КОРОЛЕВСТВО -->
+            <div class="panel">
+                <div class="region-badge" id="regionBadge">📍 Регион 1</div>
+                <h2 class="panel-title">🏝️ Твоё королевство</h2>
+
+                <!-- ПИТОМЕЦ -->
+                <div class="pet-display" id="petDisplay">
+                    <div class="pet-icon" id="petIcon">🐶</div>
+                    <div class="pet-level">Ур. <span id="petLevel">1</span></div>
+                    <div class="pet-xp-bar">
+                        <div class="pet-xp-fill" id="petXpFill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="island-container">
+                    <div class="island" id="kingdomGrid">
+                        <!-- Здания генерируются JS -->
+                    </div>
+                    <div class="character">🧑‍🌾</div>
+                </div>
+            </div>
+
+            <!-- ДЕЙСТВИЯ -->
+            <div class="panel">
+                <h2 class="panel-title">⚔️ Действия</h2>
+
+                <!-- СОБЫТИЯ -->
+                <div id="eventContainer"></div>
+
+                <!-- КНОПКИ ДЕЙСТВИЙ -->
+                <button class="action-btn" onclick="startMathChallenge()">
+                    <span style="position: relative; z-index: 1;">⚔️ Заработать монеты</span>
+                </button>
+
+                <button class="action-btn secondary" onclick="showShop()">
+                    <span style="position: relative; z-index: 1;">🏗️ Строить</span>
+                </button>
+
+                <button class="action-btn success" onclick="collectIncome()">
+                    <span style="position: relative; z-index: 1;">💰 Собрать доход</span>
+                </button>
+
+                <!-- ВОПРОС -->
+                <div class="question-box" id="questionBox">
+                    <div class="question-text" id="questionText"></div>
+                    <div class="answers-grid" id="answersGrid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО МАГАЗИНА -->
+    <div class="modal" id="shopModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeShop()">×</span>
+            <h2 class="modal-title">🏗️ Магазин зданий</h2>
+            <div class="shop-grid" id="shopGrid"></div>
+        </div>
+    </div>
+
+    <!-- УВЕДОМЛЕНИЕ -->
+    <div class="notification" id="notification">
+        <div class="notification-title" id="notificationTitle"></div>
+        <div class="notification-text" id="notificationText"></div>
+        <button class="notification-btn" onclick="closeNotification()">Отлично!</button>
+    </div>
+
+    <script>
+        // ДАННЫЕ ИГРЫ
+        let gameData = {
+            coins: 20,
+            level: 1,
+            xp: 0,
+            population: 1,
+            region: 1,
+            buildings: ['house'],
+            combo: 0,
+            maxCombo: 0,
+            totalCorrect: 0,
+            pet: {
+                type: 'dog',
+                level: 1,
+                xp: 0
+            },
+            events: [],
+            passiveIncome: 0,
+            lastIncomeTime: Date.now()
+        };
+
+        // ТИПЫ ЗДАНИЙ
+        const buildingTypes = {
+            // ЭКОНОМИКА
+            house: { icon: '🏠', name: 'Дом', cost: 30, income: 1, region: 1, category: 'economy' },
+            farm: { icon: '🌾', name: 'Ферма', cost: 50, income: 2, region: 1, category: 'economy' },
+            mill: { icon: '🏭', name: 'Мельница', cost: 100, income: 3, region: 1, category: 'economy' },
+            shop: { icon: '🏪', name: 'Магазин', cost: 150, income: 5, region: 2, category: 'economy' },
+            mine: { icon: '⛏️', name: 'Шахта', cost: 300, income: 8, region: 2, category: 'economy' },
+            workshop: { icon: '🔨', name: 'Мастерская', cost: 500, income: 12, region: 3, category: 'economy' },
+
+            // НАСЕЛЕНИЕ
+            village: { icon: '🏘️', name: 'Деревня', cost: 200, income: 0, population: 5, region: 2, category: 'population' },
+            school: { icon: '🏫', name: 'Школа', cost: 400, income: 0, population: 10, region: 3, category: 'population' },
+            hospital: { icon: '🏥', name: 'Больница', cost: 600, income: 0, population: 15, region: 3, category: 'population' },
+
+            // КОРОЛЕВСКИЕ
+            castle: { icon: '🏰', name: 'Замок', cost: 1000, income: 20, region: 3, category: 'royal' },
+            palace: { icon: '🏛️', name: 'Дворец', cost: 2000, income: 40, region: 4, category: 'royal' },
+            tower: { icon: '🗼', name: 'Башня', cost: 1500, income: 30, region: 4, category: 'royal' },
+
+            // ДЕКОР
+            tree: { icon: '🌳', name: 'Дерево', cost: 20, income: 0, region: 1, category: 'decor' },
+            fountain: { icon: '⛲', name: 'Фонтан', cost: 80, income: 0, region: 2, category: 'decor' },
+            statue: { icon: '🗿', name: 'Статуя', cost: 150, income: 0, region: 3, category: 'decor' },
+            flowers: { icon: '🌷', name: 'Цветы', cost: 30, income: 0, region: 1, category: 'decor' }
+        };
+
+        // СОБЫТИЯ
+        const eventTypes = [
+            {
+                id: 'dragon',
+                title: '🐉 Дракон!',
+                desc: 'Дракон требует дань! Реши 5 задач и прогони его!',
+                reward: 200,
+                tasks: 5,
+                difficulty: 'hard'
+            },
+            {
+                id: 'festival',
+                title: '🎪 Праздник!',
+                desc: 'В королевстве праздник! Реши 3 задачи и получи награду!',
+                reward: 100,
+                tasks: 3,
+                difficulty: 'medium'
+            },
+            {
+                id: 'bandits',
+                title: '👹 Разбойники!',
+                desc: 'Разбойники напали! Защити город решив 4 задачи!',
+                reward: 150,
+                tasks: 4,
+                difficulty: 'medium'
+            }
+        ];
+
+        let currentEvent = null;
+        let eventProgress = 0;
+
+        // ИНИЦИАЛИЗАЦИЯ
+        function init() {
+            loadGame();
+            updateUI();
+            renderKingdom();
+            checkEvents();
+            startPassiveIncome();
+        }
+
+        // ЗАГРУЗКА
+        function loadGame() {
+            const saved = localStorage.getItem('mathKingdomTycoon');
+            if (saved) {
+                gameData = { ...gameData, ...JSON.parse(saved) };
+            }
+        }
+
+        function saveGame() {
+            localStorage.setItem('mathKingdomTycoon', JSON.stringify(gameData));
+        }
+
+        // ОБНОВЛЕНИЕ UI
+        function updateUI() {
+            document.getElementById('coins').textContent = Math.floor(gameData.coins);
+            document.getElementById('level').textContent = gameData.level;
+            document.getElementById('population').textContent = gameData.population;
+
+            // Комбо
+            if (gameData.combo > 0) {
+                document.getElementById('comboDisplay').style.display = 'flex';
+                document.getElementById('comboCount').textContent = gameData.combo;
+            } else {
+                document.getElementById('comboDisplay').style.display = 'none';
+            }
+
+            // Регион
+            const regions = ['Деревня', 'Город', 'Королевство', 'Империя'];
+            document.getElementById('regionTitle').textContent = regions[gameData.region - 1] || 'Деревня';
+            document.getElementById('regionBadge').textContent = `📍 Регион ${gameData.region}`;
+
+            // Питомец
+            const petIcons = { dog: '🐶', cat: '🐱', dragon: '🐉', fox: '🦊' };
+            document.getElementById('petIcon').textContent = petIcons[gameData.pet.type];
+            document.getElementById('petLevel').textContent = gameData.pet.level;
+
+            const petXpNeeded = gameData.pet.level * 50;
+            const petXpPercent = (gameData.pet.xp / petXpNeeded) * 100;
+            document.getElementById('petXpFill').style.width = petXpPercent + '%';
+
+            // Пассивный доход
+            calculatePassiveIncome();
+        }
+
+        // РЕНДЕР КОРОЛЕВСТВА
+        function renderKingdom() {
+            const grid = document.getElementById('kingdomGrid');
+            grid.innerHTML = '';
+
+            const maxSlots = 25; // Много круглых ячеек
+
+            for (let i = 0; i < maxSlots; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'building-slot';
+
+                if (i < gameData.buildings.length) {
+                    const buildingId = gameData.buildings[i];
+                    const building = buildingTypes[buildingId];
+                    if (building) {
+                        slot.className = 'building-slot built';
+                        slot.textContent = building.icon;
+                        slot.title = building.name;
+
+                        // Показать доход
+                        if (building.income > 0) {
+                            const income = document.createElement('div');
+                            income.className = 'building-income';
+                            income.textContent = `+${building.income}`;
+                            slot.appendChild(income);
+                        }
+                    }
+                }
+
+                grid.appendChild(slot);
+            }
+        }
+
+        // ПАССИВНЫЙ ДОХОД
+        function calculatePassiveIncome() {
+            let income = 0;
+            gameData.buildings.forEach(id => {
+                const building = buildingTypes[id];
+                if (building && building.income) {
+                    income += building.income;
+                }
+            });
+            gameData.passiveIncome = income;
+        }
+
+        function startPassiveIncome() {
+            setInterval(() => {
+                if (gameData.passiveIncome > 0) {
+                    const timePassed = (Date.now() - gameData.lastIncomeTime) / 1000;
+                    const income = (gameData.passiveIncome / 30) * timePassed;
+                    gameData.coins += income;
+                    gameData.lastIncomeTime = Date.now();
+                    updateUI();
+                    saveGame();
+                }
+            }, 1000);
+        }
+
+        function collectIncome() {
+            if (gameData.passiveIncome === 0) {
+                showNotification('💰 Нет дохода', 'Построй здания, которые приносят доход!');
+                return;
+            }
+
+            const income = gameData.passiveIncome * 10; // 10 секунд дохода
+            gameData.coins += income;
+            updateUI();
+            saveGame();
+            showNotification('💰 Собрано!', `+${Math.floor(income)} монет от зданий!`);
+        }
+
+        // МАТЕМАТИЧЕСКИЙ ВЫЗОВ
+        function startMathChallenge() {
+            const question = generateQuestion();
+            document.getElementById('questionText').textContent = question.text;
+            document.getElementById('questionBox').classList.add('active');
+
+            const grid = document.getElementById('answersGrid');
+            grid.innerHTML = '';
+
+            question.answers.forEach(ans => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = ans;
+                btn.onclick = () => checkAnswer(ans, question.correct);
+                grid.appendChild(btn);
+            });
+        }
+
+        function generateQuestion() {
+            const difficulty = gameData.region;
+            let a, b, operation, answer;
+
+            if (difficulty === 1) {
+                a = Math.floor(Math.random() * 10) + 1;
+                b = Math.floor(Math.random() * 10) + 1;
+                operation = Math.random() > 0.5 ? '+' : '-';
+                if (operation === '-' && a < b) [a, b] = [b, a];
+                answer = operation === '+' ? a + b : a - b;
+            } else if (difficulty === 2) {
+                a = Math.floor(Math.random() * 50) + 1;
+                b = Math.floor(Math.random() * 50) + 1;
+                operation = ['+', '-', '×'][Math.floor(Math.random() * 3)];
+                if (operation === '-' && a < b) [a, b] = [b, a];
+                if (operation === '×') {
+                    a = Math.floor(Math.random() * 9) + 2;
+                    b = Math.floor(Math.random() * 9) + 2;
+                }
+                answer = operation === '+' ? a + b : operation === '-' ? a - b : a * b;
+            } else {
+                a = Math.floor(Math.random() * 100) + 1;
+                b = Math.floor(Math.random() * 50) + 1;
+                operation = ['+', '-', '×', '÷'][Math.floor(Math.random() * 4)];
+                if (operation === '÷') {
+                    b = Math.floor(Math.random() * 9) + 2;
+                    answer = Math.floor(Math.random() * 12) + 1;
+                    a = b * answer;
+                } else if (operation === '-' && a < b) [a, b] = [b, a];
+                else if (operation === '×') {
+                    a = Math.floor(Math.random() * 12) + 2;
+                    b = Math.floor(Math.random() * 12) + 2;
+                }
+                if (operation !== '÷') {
+                    answer = operation === '+' ? a + b : operation === '-' ? a - b : a * b;
+                }
+            }
+
+            const text = `${a} ${operation} ${b} = ?`;
+            const wrong = [answer + 1, answer - 1, answer + 2].filter(x => x > 0);
+            const answers = [answer, ...wrong.slice(0, 3)].sort(() => Math.random() - 0.5);
+
+            return { text, correct: answer, answers };
+        }
+
+        function checkAnswer(answer, correct) {
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => {
+                btn.onclick = null;
+                if (parseInt(btn.textContent) === correct) {
+                    btn.classList.add('correct');
+                } else if (parseInt(btn.textContent) === answer) {
+                    btn.classList.add('wrong');
+                }
+            });
+
+            if (answer === correct) {
+                gameData.combo++;
+                gameData.totalCorrect++;
+                if (gameData.combo > gameData.maxCombo) gameData.maxCombo = gameData.combo;
+
+                let reward = 10 * gameData.region;
+                let xpReward = 5;
+
+                // Бонус за комбо
+                if (gameData.combo >= 10) {
+                    reward *= 5;
+                    xpReward *= 5;
+                } else if (gameData.combo >= 5) {
+                    reward *= 3;
+                    xpReward *= 3;
+                } else if (gameData.combo >= 3) {
+                    reward = Math.floor(reward * 1.5);
+                    xpReward = Math.floor(xpReward * 1.5);
+                }
+
+                gameData.coins += reward;
+                gameData.xp += xpReward;
+                gameData.pet.xp += xpReward;
+
+                // Проверка уровня
+                const xpNeeded = gameData.level * 100;
+                if (gameData.xp >= xpNeeded) {
+                    gameData.xp -= xpNeeded;
+                    gameData.level++;
+                    checkRegion();
+                    showNotification('🎉 Новый уровень!', `Ты достиг ${gameData.level} уровня!`);
+                }
+
+                // Уровень питомца
+                const petXpNeeded = gameData.pet.level * 50;
+                if (gameData.pet.xp >= petXpNeeded) {
+                    gameData.pet.xp -= petXpNeeded;
+                    gameData.pet.level++;
+                    showNotification('🐶 Питомец вырос!', `Твой питомец достиг ${gameData.pet.level} уровня!`);
+                }
+
+                // Прогресс события
+                if (currentEvent) {
+                    eventProgress++;
+                    if (eventProgress >= currentEvent.tasks) {
+                        completeEvent();
+                    } else {
+                        updateEventDisplay();
+                    }
+                }
+
+                updateUI();
+                saveGame();
+            } else {
+                gameData.combo = 0;
+                updateUI();
+            }
+
+            setTimeout(() => {
+                document.getElementById('questionBox').classList.remove('active');
+            }, 1500);
+        }
+
+        // РЕГИОНЫ
+        function checkRegion() {
+            if (gameData.level >= 20 && gameData.region < 4) {
+                gameData.region = 4;
+                showNotification('🏛️ Новый регион!', 'Ты открыл Империю!');
+            } else if (gameData.level >= 10 && gameData.region < 3) {
+                gameData.region = 3;
+                showNotification('🏰 Новый регион!', 'Ты открыл Королевство!');
+            } else if (gameData.level >= 5 && gameData.region < 2) {
+                gameData.region = 2;
+                showNotification('🏙️ Новый регион!', 'Ты открыл Город!');
+            }
+        }
+
+        // СОБЫТИЯ
+        function checkEvents() {
+            setInterval(() => {
+                if (!currentEvent && Math.random() < 0.1) {
+                    startRandomEvent();
+                }
+            }, 60000); // Каждую минуту шанс события
+        }
+
+        function startRandomEvent() {
+            currentEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+            eventProgress = 0;
+            updateEventDisplay();
+        }
+
+        function updateEventDisplay() {
+            const container = document.getElementById('eventContainer');
+            if (currentEvent) {
+                container.innerHTML = `
+                    <div class="event-panel">
+                        <div class="event-title">${currentEvent.title}</div>
+                        <div class="event-desc">${currentEvent.desc}</div>
+                        <div class="event-reward">Прогресс: ${eventProgress}/${currentEvent.tasks}</div>
+                        <div class="event-reward">Награда: ${currentEvent.reward} 🪙</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+            }
+        }
+
+        function completeEvent() {
+            gameData.coins += currentEvent.reward;
+            showNotification(`${currentEvent.title} Победа!`, `Ты получил ${currentEvent.reward} монет!`);
+            currentEvent = null;
+            eventProgress = 0;
+            updateEventDisplay();
+            updateUI();
+            saveGame();
+        }
+
+        // МАГАЗИН
+        function showShop() {
+            const grid = document.getElementById('shopGrid');
+            grid.innerHTML = '';
+
+            Object.entries(buildingTypes).forEach(([id, building]) => {
+                const canBuild = gameData.region >= building.region;
+                const canAfford = gameData.coins >= building.cost;
+                const hasSpace = gameData.buildings.length < 25;
+
+                const item = document.createElement('div');
+                item.className = 'shop-item';
+
+                if (!canBuild) {
+                    item.classList.add('locked');
+                } else if (canAfford && hasSpace) {
+                    item.classList.add('affordable');
+                }
+
+                item.innerHTML = `
+                    <div class="shop-icon">${building.icon}</div>
+                    <div class="shop-name">${building.name}</div>
+                    <div class="shop-cost">🪙 ${building.cost}</div>
+                    ${building.income ? `<div class="shop-income">+${building.income}/мин</div>` : ''}
+                    ${!canBuild ? `<div style="color: #999; font-size: 0.9em;">Регион ${building.region}</div>` : ''}
+                `;
+
+                if (canBuild && hasSpace) {
+                    item.onclick = () => buyBuilding(id, building);
+                }
+
+                grid.appendChild(item);
+            });
+
+            document.getElementById('shopModal').classList.add('show');
+        }
+
+        function closeShop() {
+            document.getElementById('shopModal').classList.remove('show');
+        }
+
+        function buyBuilding(id, building) {
+            if (gameData.coins < building.cost) {
+                showNotification('❌ Недостаточно монет', `Нужно еще ${building.cost - gameData.coins} монет`);
+                return;
+            }
+
+            if (gameData.buildings.length >= 25) {
+                showNotification('🏝️ Остров заполнен', 'Нет свободного места!');
+                return;
+            }
+
+            gameData.coins -= building.cost;
+            gameData.buildings.push(id);
+
+            if (building.population) {
+                gameData.population += building.population;
+            }
+
+            saveGame();
+            updateUI();
+            renderKingdom();
+            closeShop();
+
+            showNotification('🎉 Построено!', `${building.icon} ${building.name} появилось в королевстве!`);
+        }
+
+        // УВЕДОМЛЕНИЯ
+        function showNotification(title, text) {
+            document.getElementById('notificationTitle').textContent = title;
+            document.getElementById('notificationText').textContent = text;
+            document.getElementById('notification').classList.add('show');
+        }
+
+        function closeNotification() {
+            document.getElementById('notification').classList.remove('show');
+        }
+
+        // ЗАПУСК
+        init();
+    </script>
+</body>
+</html>

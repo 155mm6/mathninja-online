@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Рогалит-подземелье: Математика</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <header>
+      <h1>🏰 Рогалит-подземелье</h1>
+      <div class="stats">
+        <span>💚 Здоровье: <span id="health">100</span></span>
+        <span>✨ Уровень: <span id="level">1</span></span>
+        <span>📦 Инвентарь: <span id="inventory-count">0</span> карт</span>
+      </div>
+    </header>
+
+    <main>
+      <div id="game-screen">
+        <!-- Игровой экран будет заполнен JS -->
+      </div>
+
+      <div id="combat-screen" style="display: none;">
+        <h2>⚔️ Бой!</h2>
+        <div class="enemy">
+          <span>Враг: <strong id="enemy-name">Гоблин</strong></span>
+          <div class="shield">Щит: <span id="shield-number">12</span></div>
+        </div>
+        <div class="player-hand" id="player-hand">
+          <!-- Карты игрока появятся здесь -->
+        </div>
+        <div class="actions">
+          <button id="end-turn">Завершить ход</button>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>Соберите число с ваших карт, чтобы сломать щит врага</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

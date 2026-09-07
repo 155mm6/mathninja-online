@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🥷 Математический Ниндзя</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Black', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* ФОНОВЫЕ ЭЛЕМЕНТЫ */
+        .sakura {
+            position: fixed;
+            width: 15px;
+            height: 15px;
+            background: #FFB7C5;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ГЛАВНОЕ МЕНЮ */
+        .menu-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .menu-screen.hidden {
+            display: none;
+        }
+
+        .game-title {
+            font-size: 5em;
+            color: #FFD700;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .player-info {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 3px solid #FFD700;
+            text-align: center;
+        }
+
+        .player-level {
+            font-size: 2em;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .belt-display {
+            font-size: 3em;
+            margin: 10px 0;
+        }
+
+        .xp-bar-container {
+            background: rgba(0, 0, 0, 0.3);
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-top: 15px;
+            border: 2px solid #FFD700;
+        }
+
+        .xp-bar {
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .menu-btn {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 1.8em;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(255, 107, 107, 0.6);
+        }
+
+        /* ВЫБОР ПОЯСА */
+        .belt-selection {
+            display: none;
+            text-align: center;
+        }
+
+        .belt-selection.active {
+            display: block;
+        }
+
+        .belt-title {
+            font-size: 3em;
+            color: #FFD700;
+            margin-bottom: 30px;
+        }
+
+        .belt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .belt-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .belt-card:hover {
+            transform: translateY(-5px);
+            border-color: #FFD700;
+        }
+
+        .belt-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .belt-icon {
+            font-size: 4em;
+            margin-bottom: 10px;
+        }
+
+        .belt-name {
+            font-size: 1.5em;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .belt-desc {
+            font-size: 1em;
+            color: #ccc;
+        }
+
+        /* ИГРОВОЙ ЭКРАН */
+        .game-screen {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #FFD700;
+        }
+
+        .stat-display {
+            font-size: 2em;
+            color: white;
+            font-weight: bold;
+        }
+
+        .timer {
+            font-size: 3em;
+            color: #FFD700;
+        }
+
+        .timer.warning {
+            color: #FF6B6B;
+            animation: timerBlink 0.5s ease-in-out infinite;
+        }
+
+        @keyframes timerBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .combo-display {
+            font-size: 2.5em;
+            color: #FF6B6B;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .combo-display.super {
+            animation: comboShake 0.5s ease-in-out;
+        }
+
+        @keyframes comboShake {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.2) rotate(-5deg); }
+            75% { transform: scale(1.2) rotate(5deg); }
+        }
+
+        /* ИГРОВОЕ ПОЛЕ */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .ninja-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+        }
+
+        .ninja {
+            font-size: 10em;
+            text-align: center;
+            animation: ninjaIdle 2s ease-in-out infinite;
+        }
+
+        @keyframes ninjaIdle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .ninja.attacking {
+            animation: ninjaAttack 0.3s ease-out;
+        }
+
+        @keyframes ninjaAttack {
+            0% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(-15deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .question-display {
+            font-size: 4em;
+            color: white;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+            animation: questionFade 0.3s ease-in;
+        }
+
+        @keyframes questionFade {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* БАМБУКОВЫЕ ПАЛКИ */
+        .bamboo-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .bamboo {
+            position: relative;
+            width: 150px;
+            height: 300px;
+            background: linear-gradient(180deg, #8B7355 0%, #6B563F 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 4px solid #654321;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .bamboo:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.5);
+        }
+
+        .bamboo-number {
+            font-size: 4em;
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .bamboo.slashed {
+            animation: bambooSlash 0.5s ease-out forwards;
+        }
+
+        @keyframes bambooSlash {
+            0% { transform: rotate(0deg); opacity: 1; }
+            50% { transform: rotate(15deg) translateX(20px); }
+            100% { transform: rotate(30deg) translateX(50px) translateY(100px); opacity: 0; }
+        }
+
+        .bamboo.wrong {
+            animation: bambooShake 0.5s ease-out;
+        }
+
+        @keyframes bambooShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* ЭФФЕКТ РАЗРЕЗАНИЯ */
+        .slash-effect {
+            position: fixed;
+            font-size: 8em;
+            color: #FFD700;
+            pointer-events: none;
+            z-index: 1000;
+            animation: slashAnim 0.5s ease-out forwards;
+        }
+
+        @keyframes slashAnim {
+            0% { transform: scale(0) rotate(-45deg); opacity: 1; }
+            50% { transform: scale(1.5) rotate(0deg); opacity: 1; }
+            100% { transform: scale(2) rotate(45deg); opacity: 0; }
+        }
+
+        /* ОЧКИ */
+        .score-popup {
+            position: fixed;
+            font-size: 3em;
+            color: #FFD700;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 1000;
+            animation: scoreFloat 1s ease-out forwards;
+        }
+
+        @keyframes scoreFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100px); opacity: 0; }
+        }
+
+        /* ЭКРАН РЕЗУЛЬТАТОВ */
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .result-screen.active {
+            display: flex;
+        }
+
+        .result-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 50px;
+            border: 5px solid #FFD700;
+            text-align: center;
+        }
+
+        .result-title {
+            font-size: 4em;
+            color: #FFD700;
+            margin-bottom: 30px;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .result-stat {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .result-label {
+            font-size: 1.2em;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+
+        .result-value {
+            font-size: 3em;
+            color: white;
+            font-weight: bold;
+        }
+
+        .new-record {
+            font-size: 2em;
+            color: #FF6B6B;
+            margin-bottom: 20px;
+            animation: recordBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes recordBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 3em;
+            }
+
+            .question-display {
+                font-size: 2.5em;
+            }
+
+            .bamboo {
+                width: 100px;
+                height: 200px;
+            }
+
+            .bamboo-number {
+                font-size: 2.5em;
+            }
+
+            .ninja {
+                font-size: 6em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ГЛАВНОЕ МЕНЮ -->
+        <div class="menu-screen" id="menuScreen">
+            <div class="game-title">🥷 МАТЕМАТИЧЕСКИЙ НИНДЗЯ</div>
+
+            <div class="player-info">
+                <div class="player-level">Уровень <span id="playerLevel">1</span></div>
+                <div class="belt-display" id="currentBelt">⚪</div>
+                <div style="color: white; font-size: 1.2em;" id="beltName">Белый пояс</div>
+                <div class="xp-bar-container">
+                    <div class="xp-bar" id="xpBar" style="width: 0%">
+                        <span id="xpText">0 / 100 XP</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-buttons">
+                <button class="menu-btn" onclick="startGame()">⚔️ Начать тренировку</button>
+                <button class="menu-btn" onclick="showBeltSelection()">🥋 Выбрать пояс</button>
+            </div>
+        </div>
+
+        <!-- ВЫБОР ПОЯСА -->
+        <div class="belt-selection" id="beltSelection">
+            <div class="belt-title">Выбери свой пояс</div>
+            <div class="belt-grid" id="beltGrid"></div>
+            <button class="menu-btn" onclick="showMenu()">Назад</button>
+        </div>
+
+        <!-- ИГРОВОЙ ЭКРАН -->
+        <div class="game-screen" id="gameScreen">
+            <div class="game-header">
+                <div class="stat-display">Очки: <span id="score">0</span></div>
+                <div class="timer" id="timer">60</div>
+                <div class="combo-display" id="comboDisplay"></div>
+            </div>
+
+            <div class="game-area">
+                <div class="ninja-container">
+                    <div class="ninja" id="ninja">🥷</div>
+                </div>
+
+                <div class="question-display" id="question">8 + 7 = ?</div>
+
+                <div class="bamboo-container" id="bambooContainer">
+                    <!-- Бамбуковые палки генерируются JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ЭКРАН РЕЗУЛЬТАТОВ -->
+        <div class="result-screen" id="resultScreen">
+            <div class="result-container">
+                <div class="result-title">🏆 РЕЗУЛЬТАТ</div>
+                <div class="new-record" id="newRecord" style="display: none;">🔥 НОВЫЙ РЕКОРД!</div>
+
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <div class="result-label">Очки</div>
+                        <div class="result-value" id="finalScore">0</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-label">Правильных</div>
+                        <div class="result-value" id="finalCorrect">0</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-label">Ошибок</div>
+                        <div class="result-value" id="finalWrong">0</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-label">Макс комбо</div>
+                        <div class="result-value" id="finalCombo">0</div>
+                    </div>
+                </div>
+
+                <div class="menu-buttons">
+                    <button class="menu-btn" onclick="startGame()">Еще раз</button>
+                    <button class="menu-btn" onclick="showMenu()">В меню</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ДАННЫЕ ИГРОКА
+        let playerData = {
+            level: 1,
+            xp: 0,
+            belt: 0, // 0 = белый, 1 = желтый, 2 = зеленый
+            bestScore: 0,
+            bestCombo: 0
+        };
+
+        // ПОЯСА
+        const belts = [
+            { icon: '⚪', name: 'Белый пояс', desc: '1 класс: до 20', xpRequired: 0 },
+            { icon: '🟡', name: 'Желтый пояс', desc: '1-2 класс: до 100', xpRequired: 200 },
+            { icon: '🟢', name: 'Зеленый пояс', desc: '2 класс: умножение', xpRequired: 500 }
+        ];
+
+        let currentBelt = 0;
+
+        // СОСТОЯНИЕ ИГРЫ
+        let gameState = {
+            score: 0,
+            combo: 0,
+            maxCombo: 0,
+            correct: 0,
+            wrong: 0,
+            timeLeft: 60,
+            isPlaying: false,
+            currentQuestion: null,
+            speed: 3000
+        };
+
+        let gameTimer = null;
+        let questionTimer = null;
+
+        // ИНИЦИАЛИЗАЦИЯ
+        function init() {
+            loadPlayerData();
+            updatePlayerInfo();
+            renderBeltSelection();
+            createSakura();
+        }
+
+        function loadPlayerData() {
+            const saved = localStorage.getItem('mathNinjaData');
+            if (saved) {
+                playerData = { ...playerData, ...JSON.parse(saved) };
+            }
+        }
+
+        function savePlayerData() {
+            localStorage.setItem('mathNinjaData', JSON.stringify(playerData));
+        }
+
+        function updatePlayerInfo() {
+            document.getElementById('playerLevel').textContent = playerData.level;
+            document.getElementById('currentBelt').textContent = belts[playerData.belt].icon;
+            document.getElementById('beltName').textContent = belts[playerData.belt].name;
+
+            const nextLevelXP = playerData.level * 100;
+            const xpPercent = (playerData.xp / nextLevelXP) * 100;
+            document.getElementById('xpBar').style.width = xpPercent + '%';
+            document.getElementById('xpText').textContent = `${playerData.xp} / ${nextLevelXP} XP`;
+        }
+
+        // ГЕНЕРАЦИЯ ВОПРОСОВ
+        function generateQuestion() {
+            let a, b, op, answer;
+
+            if (currentBelt === 0) {
+                // Белый пояс
+                a = Math.floor(Math.random() * 10) + 1;
+                b = Math.floor(Math.random() * (20 - a)) + 1;
+                op = Math.random() > 0.5 ? '+' : '-';
+                if (op === '-') {
+                    a = Math.floor(Math.random() * 19) + 2;
+                    b = Math.floor(Math.random() * (a - 1)) + 1;
+                }
+                answer = op === '+' ? a + b : a - b;
+            } else if (currentBelt === 1) {
+                // Желтый пояс
+                a = Math.floor(Math.random() * 50) + 1;
+                b = Math.floor(Math.random() * 50) + 1;
+                op = Math.random() > 0.5 ? '+' : '-';
+                if (op === '-' && a < b) [a, b] = [b, a];
+                answer = op === '+' ? a + b : a - b;
+            } else {
+                // Зеленый пояс
+                a = Math.floor(Math.random() * 9) + 2;
+                b = Math.floor(Math.random() * 9) + 2;
+                op = '×';
+                answer = a * b;
+            }
+
+            const question = `${a} ${op} ${b}`;
+
+            // Генерация неправильных ответов
+            const wrongAnswers = [];
+            while (wrongAnswers.length < 2) {
+                const offset = Math.floor(Math.random() * 10) - 5;
+                const wrong = answer + offset;
+                if (wrong > 0 && wrong !== answer && !wrongAnswers.includes(wrong)) {
+                    wrongAnswers.push(wrong);
+                }
+            }
+
+            const allAnswers = [answer, ...wrongAnswers].sort(() => Math.random() - 0.5);
+
+            return {
+                text: question + ' = ?',
+                correct: answer,
+                options: allAnswers
+            };
+        }
+
+        // НАЧАТЬ ИГРУ
+        function startGame() {
+            // Сброс состояния
+            gameState = {
+                score: 0,
+                combo: 0,
+                maxCombo: 0,
+                correct: 0,
+                wrong: 0,
+                timeLeft: 60,
+                isPlaying: true,
+                speed: 3000
+            };
+
+            // Показать игровой экран
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('beltSelection').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            document.getElementById('resultScreen').classList.remove('active');
+
+            updateGameUI();
+            nextQuestion();
+            startTimer();
+        }
+
+        function startTimer() {
+            gameTimer = setInterval(() => {
+                gameState.timeLeft--;
+                document.getElementById('timer').textContent = gameState.timeLeft;
+
+                if (gameState.timeLeft <= 10) {
+                    document.getElementById('timer').classList.add('warning');
+                }
+
+                if (gameState.timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateGameUI() {
+            document.getElementById('score').textContent = gameState.score;
+
+            if (gameState.combo > 0) {
+                let comboText = `🔥 COMBO x${gameState.combo}`;
+                if (gameState.combo >= 20) comboText = `👑 MASTER x${gameState.combo}`;
+                else if (gameState.combo >= 10) comboText = `💥 NINJA x${gameState.combo}`;
+                else if (gameState.combo >= 5) comboText = `⚡ SUPER x${gameState.combo}`;
+
+                const comboEl = document.getElementById('comboDisplay');
+                comboEl.textContent = comboText;
+
+                if (gameState.combo === 3 || gameState.combo === 5 || gameState.combo === 10 || gameState.combo === 20) {
+                    comboEl.classList.add('super');
+                    setTimeout(() => comboEl.classList.remove('super'), 500);
+                }
+            } else {
+                document.getElementById('comboDisplay').textContent = '';
+            }
+        }
+
+        function nextQuestion() {
+            if (!gameState.isPlaying) return;
+
+            gameState.currentQuestion = generateQuestion();
+            document.getElementById('question').textContent = gameState.currentQuestion.text;
+
+            renderBamboos();
+        }
+
+        function renderBamboos() {
+            const container = document.getElementById('bambooContainer');
+            container.innerHTML = '';
+
+            gameState.currentQuestion.options.forEach(option => {
+                const bamboo = document.createElement('div');
+                bamboo.className = 'bamboo';
+                bamboo.innerHTML = `<div class="bamboo-number">${option}</div>`;
+                bamboo.onclick = () => checkAnswer(option, bamboo);
+                container.appendChild(bamboo);
+            });
+        }
+
+        function checkAnswer(answer, bambooElement) {
+            if (!gameState.isPlaying) return;
+
+            const correct = answer === gameState.currentQuestion.correct;
+
+            if (correct) {
+                // Правильный ответ
+                gameState.correct++;
+                gameState.combo++;
+                if (gameState.combo > gameState.maxCombo) {
+                    gameState.maxCombo = gameState.combo;
+                }
+
+                let points = 10;
+                if (gameState.combo >= 20) points = 100;
+                else if (gameState.combo >= 10) points = 50;
+                else if (gameState.combo >= 5) points = 30;
+                else if (gameState.combo >= 3) points = 20;
+
+                gameState.score += points;
+
+                // Анимация ниндзя
+                const ninja = document.getElementById('ninja');
+                ninja.classList.add('attacking');
+                setTimeout(() => ninja.classList.remove('attacking'), 300);
+
+                // Эффект разрезания
+                bambooElement.classList.add('slashed');
+                showSlashEffect(bambooElement);
+                showScorePopup(points, bambooElement);
+
+                // Звук
+                playSound('slash');
+
+                setTimeout(() => {
+                    nextQuestion();
+                }, 600);
+            } else {
+                // Неправильный ответ
+                gameState.wrong++;
+                gameState.combo = 0;
+
+                bambooElement.classList.add('wrong');
+                playSound('wrong');
+
+                // Показать правильный ответ
+                const allBamboos = document.querySelectorAll('.bamboo');
+                allBamboos.forEach(b => {
+                    const num = parseInt(b.querySelector('.bamboo-number').textContent);
+                    if (num === gameState.currentQuestion.correct) {
+                        b.style.border = '4px solid #4CAF50';
+                    }
+                });
+
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1000);
+            }
+
+            updateGameUI();
+        }
+
+        function showSlashEffect(element) {
+            const rect = element.getBoundingClientRect();
+            const slash = document.createElement('div');
+            slash.className = 'slash-effect';
+            slash.textContent = '⚔️';
+            slash.style.left = rect.left + rect.width / 2 + 'px';
+            slash.style.top = rect.top + rect.height / 2 + 'px';
+            document.body.appendChild(slash);
+
+            setTimeout(() => document.body.removeChild(slash), 500);
+        }
+
+        function showScorePopup(points, element) {
+            const rect = element.getBoundingClientRect();
+            const popup = document.createElement('div');
+            popup.className = 'score-popup';
+            popup.textContent = `+${points}`;
+            popup.style.left = rect.left + rect.width / 2 + 'px';
+            popup.style.top = rect.top + 'px';
+            document.body.appendChild(popup);
+
+            setTimeout(() => document.body.removeChild(popup), 1000);
+        }
+
+        // ЗВУКИ (Web Audio API)
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            if (type === 'slash') {
+                oscillator.frequency.value = 800;
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } else if (type === 'wrong') {
+                oscillator.frequency.value = 200;
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.2);
+            }
+        }
+
+        // КОНЕЦ ИГРЫ
+        function endGame() {
+            gameState.isPlaying = false;
+            clearInterval(gameTimer);
+
+            // Награды
+            const xpGain = gameState.correct * 10;
+            playerData.xp += xpGain;
+
+            // Проверка рекорда
+            let isNewRecord = false;
+            if (gameState.score > playerData.bestScore) {
+                playerData.bestScore = gameState.score;
+                isNewRecord = true;
+            }
+            if (gameState.maxCombo > playerData.bestCombo) {
+                playerData.bestCombo = gameState.maxCombo;
+            }
+
+            // Повышение уровня
+            const nextLevelXP = playerData.level * 100;
+            if (playerData.xp >= nextLevelXP) {
+                playerData.xp -= nextLevelXP;
+                playerData.level++;
+            }
+
+            // Открытие поясов
+            if (playerData.xp >= belts[1].xpRequired && playerData.belt < 1) {
+                playerData.belt = 1;
+            }
+            if (playerData.xp >= belts[2].xpRequired && playerData.belt < 2) {
+                playerData.belt = 2;
+            }
+
+            savePlayerData();
+            updatePlayerInfo();
+
+            // Показать результаты
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('finalCorrect').textContent = gameState.correct;
+            document.getElementById('finalWrong').textContent = gameState.wrong;
+            document.getElementById('finalCombo').textContent = gameState.maxCombo;
+
+            if (isNewRecord) {
+                document.getElementById('newRecord').style.display = 'block';
+            } else {
+                document.getElementById('newRecord').style.display = 'none';
+            }
+
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('resultScreen').classList.add('active');
+        }
+
+        // ВЫБОР ПОЯСА
+        function showBeltSelection() {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('beltSelection').classList.add('active');
+        }
+
+        function renderBeltSelection() {
+            const grid = document.getElementById('beltGrid');
+            grid.innerHTML = '';
+
+            belts.forEach((belt, index) => {
+                const card = document.createElement('div');
+                card.className = 'belt-card';
+
+                const totalXP = playerData.level * 100 + playerData.xp;
+                const isUnlocked = totalXP >= belt.xpRequired;
+
+                if (!isUnlocked) {
+                    card.classList.add('locked');
+                }
+
+                card.innerHTML = `
+                    <div class="belt-icon">${belt.icon}</div>
+                    <div class="belt-name">${belt.name}</div>
+                    <div class="belt-desc">${belt.desc}</div>
+                    ${!isUnlocked ? `<div style="color: #FF6B6B; margin-top: 10px;">Требуется ${belt.xpRequired} XP</div>` : ''}
+                `;
+
+                if (isUnlocked) {
+                    card.onclick = () => {
+                        currentBelt = index;
+                        showMenu();
+                    };
+                }
+
+                grid.appendChild(card);
+            });
+        }
+
+        function showMenu() {
+            document.getElementById('menuScreen').classList.remove('hidden');
+            document.getElementById('beltSelection').classList.remove('active');
+            document.getElementById('gameScreen').classList.remove('active');
+            document.getElementById('resultScreen').classList.remove('active');
+        }
+
+        // ЭФФЕКТ САКУРЫ
+        function createSakura() {
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const sakura = document.createElement('div');
+                    sakura.className = 'sakura';
+                    sakura.style.left = Math.random() * 100 + '%';
+                    sakura.style.animationDuration = (Math.random() * 3 + 5) + 's';
+                    sakura.style.animationDelay = Math.random() * 5 + 's';
+                    document.body.appendChild(sakura);
+                }, i * 200);
+            }
+        }
+
+        // ЗАПУСК
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Математическая арена</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Black', 'Arial Bold', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ГЛАВНЫЙ ЭКРАН */
+        #mainScreen {
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 4em;
+            color: #fff;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+            margin-bottom: 40px;
+            animation: logoGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes logoGlow {
+            0%, 100% { text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3); }
+            50% { text-shadow: 4px 4px 20px rgba(255, 255, 255, 0.6); }
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 25px 80px;
+            font-size: 2.5em;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            font-weight: bold;
+            margin-bottom: 40px;
+        }
+
+        .play-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .player-info {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            display: inline-block;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .info-row {
+            display: flex;
+            gap: 40px;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .xp-bar {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 15px;
+            width: 300px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .xp-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* ВЫБОР ПЕРСОНАЖА */
+        .character-select {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .character-title {
+            color: white;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .characters {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .character-card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 200px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .character-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .character-card.selected {
+            border: 5px solid #f5576c;
+            transform: scale(1.05);
+        }
+
+        .character-icon {
+            font-size: 5em;
+            margin-bottom: 10px;
+        }
+
+        .character-name {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        /* ВЫБОР КЛАССА */
+        .class-select {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-top: 30px;
+        }
+
+        .class-title {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .class-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .class-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5em;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .class-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ЭКРАН БОЯ */
+        #battleScreen {
+            width: 100%;
+            max-width: 1400px;
+        }
+
+        .arena {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .battle-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .fighter {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fighter-icon {
+            font-size: 6em;
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .fighter-name {
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .hp-bar {
+            background: #e0e0e0;
+            height: 40px;
+            border-radius: 20px;
+            width: 300px;
+            overflow: hidden;
+            border: 3px solid #333;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .progress-bars {
+            margin-bottom: 30px;
+        }
+
+        .progress-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 20px;
+        }
+
+        .progress-label {
+            font-size: 1.3em;
+            min-width: 100px;
+            color: #333;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 15px;
+            flex: 1;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .player-progress {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .enemy-progress {
+            background: linear-gradient(90deg, #f5576c 0%, #f093fb 100%);
+        }
+
+        .vs-section {
+            text-align: center;
+            font-size: 3em;
+            color: #f5576c;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .question-section {
+            background: #f8f8f8;
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 3em;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .answers {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .answer-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 25px;
+            font-size: 2em;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .answer-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .answer-btn.correct {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            animation: correctPulse 0.5s ease;
+        }
+
+        .answer-btn.wrong {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .combo-display {
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 60px;
+        }
+
+        .combo-text {
+            font-size: 2.5em;
+            color: #f5576c;
+            font-weight: bold;
+            animation: comboAppear 0.5s ease;
+        }
+
+        @keyframes comboAppear {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .timer {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        /* ЭКРАН ПОБЕДЫ */
+        .victory-screen {
+            background: white;
+            padding: 60px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            animation: victoryAppear 0.5s ease;
+        }
+
+        @keyframes victoryAppear {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .victory-title {
+            font-size: 4em;
+            color: #f5576c;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .victory-stats {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .next-battle-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 2em;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .next-battle-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-btn {
+            background: #888;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3em;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: #666;
+        }
+
+        /* АТАКА АНИМАЦИЯ */
+        .attack-animation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5em;
+            animation: attackBurst 0.6s ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        @keyframes attackBurst {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
+        }
+
+        /* ТАБЛИЦА ЛИДЕРОВ */
+        .leaderboard {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .leaderboard-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .leaderboard-list {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            font-size: 1.5em;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            color: #333;
+        }
+
+        .leaderboard-item:first-child {
+            background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- ГЛАВНЫЙ ЭКРАН -->
+    <div id="mainScreen" class="screen active">
+        <h1 class="logo">⚔️ Математическая арена ⚔️</h1>
+        <button class="play-btn" onclick="showCharacterSelect()">Играть</button>
+
+        <div class="player-info">
+            <div class="info-row">
+                <div class="info-item">
+                    <span>⭐ Уровень:</span>
+                    <strong id="playerLevel">1</strong>
+                </div>
+                <div class="info-item">
+                    <span>🪙 Монеты:</span>
+                    <strong id="playerCoins">0</strong>
+                </div>
+            </div>
+            <div class="info-row">
+                <span>XP:</span>
+                <div class="xp-bar">
+                    <div class="xp-fill" id="xpFill" style="width: 0%">
+                        <span id="xpText">0/100</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="character-select">
+            <h2 class="character-title">Выбери персонажа</h2>
+            <div class="characters">
+                <div class="character-card" onclick="selectCharacter('warrior')" id="char-warrior">
+                    <div class="character-icon">⚔️</div>
+                    <div class="character-name">Воин</div>
+                </div>
+                <div class="character-card" onclick="selectCharacter('mage')" id="char-mage">
+                    <div class="character-icon">🧙</div>
+                    <div class="character-name">Маг</div>
+                </div>
+                <div class="character-card" onclick="selectCharacter('robot')" id="char-robot">
+                    <div class="character-icon">🤖</div>
+                    <div class="character-name">Робот</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="class-select">
+            <h2 class="class-title">Выбери класс</h2>
+            <div class="class-buttons">
+                <button class="class-btn" onclick="selectClass(1)">1 класс</button>
+                <button class="class-btn" onclick="selectClass(2)">2 класс</button>
+                <button class="class-btn" onclick="selectClass(3)">3 класс</button>
+                <button class="class-btn" onclick="selectClass(4)">4 класс</button>
+            </div>
+        </div>
+
+        <div class="leaderboard">
+            <h2 class="leaderboard-title">🏆 Математическая лига</h2>
+            <ul class="leaderboard-list" id="leaderboardList"></ul>
+        </div>
+    </div>
+
+    <!-- ЭКРАН БОЯ -->
+    <div id="battleScreen" class="screen">
+        <div class="arena">
+            <div class="battle-header">
+                <div class="fighter">
+                    <div class="fighter-icon" id="playerIcon">⚔️</div>
+                    <div class="fighter-name">Игрок</div>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="playerHP" style="width: 100%">
+                            <span id="playerHPText">5/5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vs-section">VS</div>
+
+                <div class="fighter">
+                    <div class="fighter-icon">👾</div>
+                    <div class="fighter-name">Соперник</div>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="enemyHP" style="width: 100%">
+                            <span id="enemyHPText">5/5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="progress-bars">
+                <div class="progress-row">
+                    <div class="progress-label">Игрок</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill player-progress" id="playerProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="progress-row">
+                    <div class="progress-label">Соперник</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill enemy-progress" id="enemyProgress" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="combo-display" id="comboDisplay"></div>
+            <div class="timer" id="timer"></div>
+
+            <div class="question-section">
+                <div class="question-text" id="questionText">7 + 8 = ?</div>
+                <div class="answers" id="answersContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЭКРАН ПОБЕДЫ -->
+    <div id="victoryScreen" class="screen">
+        <div class="victory-screen">
+            <h1 class="victory-title" id="victoryTitle">ПОБЕДА! 🏆</h1>
+            <div class="victory-stats" id="victoryStats"></div>
+            <button class="next-battle-btn" onclick="nextBattle()">Следующий бой</button>
+            <button class="back-btn" onclick="backToMain()">В главное меню</button>
+        </div>
+    </div>
+
+    <script>
+        // ДАННЫЕ ИГРОКА
+        let playerData = {
+            level: 1,
+            xp: 0,
+            coins: 0,
+            character: 'warrior',
+            mathClass: 1,
+            maxHP: 5,
+            totalBattles: 0,
+            correctAnswers: 0,
+            wrongAnswers: 0
+        };
+
+        // ДАННЫЕ БОЯ
+        let battleData = {
+            playerHP: 5,
+            enemyHP: 5,
+            playerProgress: 0,
+            enemyProgress: 0,
+            combo: 0,
+            questionStartTime: 0,
+            bestTime: Infinity,
+            correctInBattle: 0,
+            wrongInBattle: 0,
+            currentQuestion: null,
+            botSpeed: 5000
+        };
+
+        // ПЕРСОНАЖИ
+        const characters = {
+            warrior: { icon: '⚔️', name: 'Воин' },
+            mage: { icon: '🧙', name: 'Маг' },
+            robot: { icon: '🤖', name: 'Робот' }
+        };
+
+        // ИНИЦИАЛИЗАЦИЯ
+        function init() {
+            loadPlayerData();
+            updateUI();
+            generateLeaderboard();
+        }
+
+        // ЗАГРУЗКА ДАННЫХ
+        function loadPlayerData() {
+            const saved = localStorage.getItem('mathArenaPlayer');
+            if (saved) {
+                playerData = { ...playerData, ...JSON.parse(saved) };
+            }
+        }
+
+        function savePlayerData() {
+            localStorage.setItem('mathArenaPlayer', JSON.stringify(playerData));
+        }
+
+        // ОБНОВЛЕНИЕ UI
+        function updateUI() {
+            document.getElementById('playerLevel').textContent = playerData.level;
+            document.getElementById('playerCoins').textContent = playerData.coins;
+
+            const xpNeeded = playerData.level * 100;
+            const xpPercent = (playerData.xp / xpNeeded) * 100;
+            document.getElementById('xpFill').style.width = xpPercent + '%';
+            document.getElementById('xpText').textContent = `${playerData.xp}/${xpNeeded}`;
+
+            // Выделить выбранного персонажа
+            document.querySelectorAll('.character-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            const selectedCard = document.getElementById(`char-${playerData.character}`);
+            if (selectedCard) selectedCard.classList.add('selected');
+        }
+
+        // ВЫБОР ПЕРСОНАЖА
+        function selectCharacter(char) {
+            playerData.character = char;
+            savePlayerData();
+            updateUI();
+        }
+
+        // ВЫБОР КЛАССА
+        function selectClass(classNum) {
+            playerData.mathClass = classNum;
+            savePlayerData();
+        }
+
+        // ПОКАЗАТЬ ВЫБОР ПЕРСОНАЖА
+        function showCharacterSelect() {
+            // Проверка выбора класса
+            if (!playerData.mathClass) {
+                alert('Сначала выбери класс!');
+                return;
+            }
+            startBattle();
+        }
+
+        // НАЧАТЬ БОЙ
+        function startBattle() {
+            // Сброс данных боя
+            battleData = {
+                playerHP: playerData.maxHP,
+                enemyHP: 5,
+                playerProgress: 0,
+                enemyProgress: 0,
+                combo: 0,
+                questionStartTime: Date.now(),
+                bestTime: Infinity,
+                correctInBattle: 0,
+                wrongInBattle: 0,
+                currentQuestion: null,
+                botSpeed: 5000 - (playerData.level * 200)
+            };
+
+            if (battleData.botSpeed < 2000) battleData.botSpeed = 2000;
+
+            // Переключить на экран боя
+            showScreen('battleScreen');
+
+            // Установить иконку персонажа
+            document.getElementById('playerIcon').textContent = characters[playerData.character].icon;
+
+            // Обновить HP
+            updateBattleUI();
+
+            // Генерировать первый вопрос
+            generateQuestion();
+
+            // Запустить бота
+            startBotTimer();
+        }
+
+        // ПОКАЗАТЬ ЭКРАН
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // ГЕНЕРАТОР МАТЕМАТИЧЕСКИХ ЗАДАНИЙ
+        function generateQuestion() {
+            battleData.questionStartTime = Date.now();
+            const classLevel = playerData.mathClass;
+
+            let question, answer;
+
+            if (classLevel === 1) {
+                // 1 класс: сложение и вычитание до 20
+                const type = Math.random() > 0.5 ? 'add' : 'sub';
+                if (type === 'add') {
+                    const a = Math.floor(Math.random() * 10) + 1;
+                    const b = Math.floor(Math.random() * (20 - a)) + 1;
+                    question = `${a} + ${b}`;
+                    answer = a + b;
+                } else {
+                    const a = Math.floor(Math.random() * 19) + 2;
+                    const b = Math.floor(Math.random() * (a - 1)) + 1;
+                    question = `${a} - ${b}`;
+                    answer = a - b;
+                }
+            } else if (classLevel === 2) {
+                // 2 класс: сложение и вычитание до 100, простое умножение
+                const type = Math.random();
+                if (type < 0.4) {
+                    const a = Math.floor(Math.random() * 50) + 1;
+                    const b = Math.floor(Math.random() * 50) + 1;
+                    question = `${a} + ${b}`;
+                    answer = a + b;
+                } else if (type < 0.8) {
+                    const a = Math.floor(Math.random() * 90) + 10;
+                    const b = Math.floor(Math.random() * a) + 1;
+                    question = `${a} - ${b}`;
+                    answer = a - b;
+                } else {
+                    const a = Math.floor(Math.random() * 9) + 2;
+                    const b = Math.floor(Math.random() * 9) + 2;
+                    question = `${a} × ${b}`;
+                    answer = a * b;
+                }
+            } else {
+                // 3-4 класс: более сложные примеры
+                const type = Math.random();
+                if (type < 0.3) {
+                    const a = Math.floor(Math.random() * 100) + 1;
+                    const b = Math.floor(Math.random() * 100) + 1;
+                    question = `${a} + ${b}`;
+                    answer = a + b;
+                } else if (type < 0.6) {
+                    const a = Math.floor(Math.random() * 150) + 50;
+                    const b = Math.floor(Math.random() * 50) + 1;
+                    question = `${a} - ${b}`;
+                    answer = a - b;
+                } else {
+                    const a = Math.floor(Math.random() * 12) + 2;
+                    const b = Math.floor(Math.random() * 12) + 2;
+                    question = `${a} × ${b}`;
+                    answer = a * b;
+                }
+            }
+
+            battleData.currentQuestion = { question, answer };
+
+            // Генерировать варианты ответов
+            const answers = generateAnswers(answer);
+
+            // Отобразить вопрос
+            document.getElementById('questionText').textContent = question + ' = ?';
+
+            const answersContainer = document.getElementById('answersContainer');
+            answersContainer.innerHTML = '';
+
+            answers.forEach(ans => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = ans;
+                btn.onclick = () => checkAnswer(ans);
+                answersContainer.appendChild(btn);
+            });
+
+            updateTimer();
+        }
+
+        function generateAnswers(correctAnswer) {
+            const answers = [correctAnswer];
+
+            while (answers.length < 4) {
+                const offset = Math.floor(Math.random() * 10) - 5;
+                const wrongAnswer = correctAnswer + offset;
+                if (wrongAnswer > 0 && !answers.includes(wrongAnswer)) {
+                    answers.push(wrongAnswer);
+                }
+            }
+
+            // Перемешать
+            return answers.sort(() => Math.random() - 0.5);
+        }
+
+        // ТАЙМЕР
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - battleData.questionStartTime) / 1000);
+            document.getElementById('timer').textContent = `⏱️ ${elapsed} сек`;
+
+            if (!battleData.battleEnded) {
+                requestAnimationFrame(updateTimer);
+            }
+        }
+
+        // ПРОВЕРКА ОТВЕТА
+        function checkAnswer(answer) {
+            if (battleData.battleEnded) return;
+
+            const correct = answer === battleData.currentQuestion.answer;
+            const responseTime = (Date.now() - battleData.questionStartTime) / 1000;
+
+            // Отключить кнопки
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => {
+                btn.onclick = null;
+                if (parseInt(btn.textContent) === battleData.currentQuestion.answer) {
+                    btn.classList.add('correct');
+                } else if (parseInt(btn.textContent) === answer && !correct) {
+                    btn.classList.add('wrong');
+                }
+            });
+
+            if (correct) {
+                battleData.correctInBattle++;
+                battleData.combo++;
+                playerData.correctAnswers++;
+
+                if (responseTime < battleData.bestTime) {
+                    battleData.bestTime = responseTime;
+                }
+
+                // Рассчитать урон на основе времени
+                let damage = 1;
+                if (responseTime < 3) {
+                    damage = 2; // Сильная атака
+                } else if (responseTime < 6) {
+                    damage = 1; // Обычная атака
+                } else {
+                    damage = 1; // Слабая атака
+                }
+
+                // Комбо бонусы
+                if (battleData.combo >= 10) {
+                    damage = 5;
+                    showCombo('ULTRA COMBO! 💥💥💥');
+                    showAttackAnimation('💥💥💥');
+                } else if (battleData.combo >= 5) {
+                    damage = 3;
+                    showCombo('SUPER ATTACK! ⚡⚡');
+                    showAttackAnimation('⚡⚡');
+                } else if (battleData.combo >= 3) {
+                    damage = 2;
+                    showCombo('COMBO! 🔥');
+                    showAttackAnimation('🔥');
+                } else if (battleData.combo === 2) {
+                    showCombo('Усиленная атака! ⚔️');
+                    showAttackAnimation('⚔️');
+                } else {
+                    showAttackAnimation('💥');
+                }
+
+                // Нанести урон
+                battleData.enemyHP -= damage;
+                if (battleData.enemyHP < 0) battleData.enemyHP = 0;
+
+                // Прогресс
+                battleData.playerProgress += 20;
+                if (battleData.playerProgress > 100) battleData.playerProgress = 100;
+
+            } else {
+                battleData.wrongInBattle++;
+                battleData.combo = 0;
+                playerData.wrongAnswers++;
+                document.getElementById('comboDisplay').innerHTML = '';
+            }
+
+            updateBattleUI();
+
+            // Проверка окончания боя
+            setTimeout(() => {
+                if (battleData.enemyHP <= 0) {
+                    endBattle(true);
+                } else if (battleData.playerProgress >= 100 || battleData.enemyProgress >= 100) {
+                    endBattle(battleData.playerProgress > battleData.enemyProgress);
+                } else {
+                    generateQuestion();
+                }
+            }, 1500);
+        }
+
+        // ПОКАЗАТЬ КОМБО
+        function showCombo(text) {
+            const comboDisplay = document.getElementById('comboDisplay');
+            comboDisplay.innerHTML = `<div class="combo-text">${text}</div>`;
+        }
+
+        // АНИМАЦИЯ АТАКИ
+        function showAttackAnimation(emoji) {
+            const anim = document.createElement('div');
+            anim.className = 'attack-animation';
+            anim.textContent = emoji;
+            document.body.appendChild(anim);
+
+            setTimeout(() => {
+                document.body.removeChild(anim);
+            }, 600);
+        }
+
+        // БОТ
+        function startBotTimer() {
+            if (battleData.battleEnded) return;
+
+            const botDelay = battleData.botSpeed + Math.random() * 2000;
+
+            setTimeout(() => {
+                if (!battleData.battleEnded) {
+                    botAnswer();
+                }
+            }, botDelay);
+        }
+
+        function botAnswer() {
+            if (battleData.battleEnded) return;
+
+            // Бот иногда ошибается (10% шанс)
+            const botCorrect = Math.random() > 0.1;
+
+            if (botCorrect) {
+                battleData.enemyProgress += 15;
+                if (battleData.enemyProgress > 100) battleData.enemyProgress = 100;
+            }
+
+            updateBattleUI();
+
+            if (battleData.enemyProgress >= 100) {
+                endBattle(false);
+            } else {
+                startBotTimer();
+            }
+        }
+
+        // ОБНОВИТЬ UI БОЯ
+        function updateBattleUI() {
+            // HP игрока
+            const playerHPPercent = (battleData.playerHP / playerData.maxHP) * 100;
+            document.getElementById('playerHP').style.width = playerHPPercent + '%';
+            document.getElementById('playerHPText').textContent = `${battleData.playerHP}/${playerData.maxHP}`;
+
+            // HP врага
+            const enemyHPPercent = (battleData.enemyHP / 5) * 100;
+            document.getElementById('enemyHP').style.width = enemyHPPercent + '%';
+            document.getElementById('enemyHPText').textContent = `${battleData.enemyHP}/5`;
+
+            // Прогресс
+            document.getElementById('playerProgress').style.width = battleData.playerProgress + '%';
+            document.getElementById('enemyProgress').style.width = battleData.enemyProgress + '%';
+        }
+
+        // ЗАВЕРШЕНИЕ БОЯ
+        function endBattle(playerWon) {
+            battleData.battleEnded = true;
+
+            if (playerWon) {
+                // Награды
+                const xpGain = 100;
+                const coinsGain = 50;
+
+                playerData.xp += xpGain;
+                playerData.coins += coinsGain;
+                playerData.totalBattles++;
+
+                // Проверка повышения уровня
+                const xpNeeded = playerData.level * 100;
+                if (playerData.xp >= xpNeeded) {
+                    playerData.xp -= xpNeeded;
+                    playerData.level++;
+                }
+
+                savePlayerData();
+
+                // Показать экран победы
+                document.getElementById('victoryTitle').textContent = 'ПОБЕДА! 🏆';
+                document.getElementById('victoryStats').innerHTML = `
+                    <div>🏆 +${xpGain} XP</div>
+                    <div>🪙 +${coinsGain} монет</div>
+                    <div>🔥 Серия: ${battleData.combo}</div>
+                    <div>⚡ Лучшее время: ${battleData.bestTime === Infinity ? '—' : battleData.bestTime.toFixed(1) + ' сек'}</div>
+                    <div>✅ Правильных: ${battleData.correctInBattle}</div>
+                    <div>❌ Ошибок: ${battleData.wrongInBattle}</div>
+                `;
+
+                showScreen('victoryScreen');
+            } else {
+                // Поражение
+                document.getElementById('victoryTitle').textContent = 'Поражение 😔';
+                document.getElementById('victoryStats').innerHTML = `
+                    <div>Попробуй еще раз!</div>
+                    <div>✅ Правильных: ${battleData.correctInBattle}</div>
+                    <div>❌ Ошибок: ${battleData.wrongInBattle}</div>
+                `;
+
+                showScreen('victoryScreen');
+            }
+        }
+
+        // СЛЕДУЮЩИЙ БОЙ
+        function nextBattle() {
+            startBattle();
+        }
+
+        // В ГЛАВНОЕ МЕНЮ
+        function backToMain() {
+            showScreen('mainScreen');
+            updateUI();
+        }
+
+        // ТАБЛИЦА ЛИДЕРОВ
+        function generateLeaderboard() {
+            const leaders = [
+                { name: 'Макс', score: 1250 },
+                { name: 'Аня', score: 1180 },
+                { name: 'Дима', score: 1020 },
+                { name: 'Саша', score: 980 },
+                { name: 'Катя', score: 850 }
+            ];
+
+            // Добавить игрока
+            const playerScore = playerData.level * 100 + playerData.xp;
+            leaders.push({ name: 'Ты', score: playerScore });
+            leaders.sort((a, b) => b.score - a.score);
+
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = '';
+
+            leaders.slice(0, 10).forEach((leader, index) => {
+                const item = document.createElement('li');
+                item.className = 'leaderboard-item';
+                item.innerHTML = `
+                    <span>${index + 1}. ${leader.name}</span>
+                    <span>${leader.score}</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // ЗАПУСК
+        init();
+    </script>
+</body>
+</html>

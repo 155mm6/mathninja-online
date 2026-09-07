@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🥷 Математический Ниндзя - Мультиплеер</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: 'Arial Black', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            touch-action: none;
+        }
+
+        .sakura {
+            position: fixed;
+            width: 15px;
+            height: 15px;
+            background: #FFB7C5;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: fall linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 0.6; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ГЛАВНОЕ МЕНЮ */
+        .menu-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .menu-screen.hidden {
+            display: none;
+        }
+
+        .game-title {
+            font-size: clamp(3em, 8vw, 5em);
+            color: #FFD700;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+            animation: titlePulse 2s ease-in-out infinite;
+            text-align: center;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .menu-btn {
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            color: white;
+            border: none;
+            padding: clamp(12px, 3vw, 18px) clamp(25px, 6vw, 50px);
+            font-size: clamp(1.1em, 3vw, 1.5em);
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 14px 30px rgba(255, 107, 107, 0.6);
+        }
+
+        .menu-btn.secondary {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+        }
+
+        /* ЭКРАН МУЛЬТИПЛЕЕРА */
+        .multiplayer-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .multiplayer-screen.active {
+            display: flex;
+        }
+
+        .multiplayer-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px;
+            border: 5px solid #FFD700;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .multiplayer-title {
+            font-size: clamp(2em, 5vw, 3em);
+            color: #FFD700;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: white;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            border-radius: 10px;
+            border: 3px solid #FFD700;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .room-code-display {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 3px solid #4CAF50;
+        }
+
+        .room-code-text {
+            color: #4CAF50;
+            font-size: 2.5em;
+            letter-spacing: 5px;
+            font-weight: bold;
+        }
+
+        .waiting-message {
+            color: #FFD700;
+            font-size: 1.3em;
+            margin: 20px 0;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .info-box {
+            background: rgba(76, 175, 80, 0.2);
+            border: 2px solid #4CAF50;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+            color: white;
+            font-size: 0.9em;
+            text-align: left;
+        }
+
+        .info-box.warning {
+            background: rgba(255, 152, 0, 0.2);
+            border-color: #FF9800;
+        }
+
+        /* ИГРОВОЙ ЭКРАН */
+        .game-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .game-screen.active {
+            display: flex;
+        }
+
+        /* ВЕРХНЯЯ ПАНЕЛЬ С ИГРОКАМИ */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 3px solid #FFD700;
+            z-index: 100;
+            gap: 15px;
+        }
+
+        .player-panel {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 15px;
+            border: 3px solid #FFD700;
+        }
+
+        .player-panel.opponent {
+            border-color: #FF6B6B;
+        }
+
+        .player-name {
+            font-size: clamp(1em, 2.5vw, 1.3em);
+            color: white;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .player-score {
+            font-size: clamp(1.5em, 4vw, 2em);
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .timer {
+            font-size: clamp(1.8em, 5vw, 2.5em);
+            color: #4CAF50;
+            font-weight: bold;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .timer.warning {
+            color: #FF6B6B;
+            animation: timerBlink 0.5s ease-in-out infinite;
+        }
+
+        @keyframes timerBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ПРИМЕР ВВЕРХУ */
+        .question-area {
+            padding: 30px 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 3px solid #FFD700;
+        }
+
+        .question-display {
+            font-size: clamp(2.5em, 7vw, 4em);
+            color: white;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            font-weight: bold;
+        }
+
+        /* ИГРОВАЯ ОБЛАСТЬ */
+        .game-area {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ФРУКТЫ-ОТВЕТЫ */
+        .fruit {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .fruit-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            border-radius: 50%;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);
+            border: 4px solid #FFD700;
+        }
+
+        .fruit-number {
+            position: relative;
+            font-size: 2.5em;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 5;
+        }
+
+        .fruit.slashed {
+            pointer-events: none;
+        }
+
+        .fruit.slashed .fruit-bg {
+            animation: fruitExplode 0.5s ease-out forwards;
+        }
+
+        @keyframes fruitExplode {
+            0% { transform: scale(1) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.3) rotate(180deg); opacity: 0.8; }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        /* ЭФФЕКТ РАЗРЕЗАНИЯ */
+        .slash-effect {
+            position: fixed;
+            font-size: 5em;
+            color: #FFD700;
+            pointer-events: none;
+            z-index: 1000;
+            animation: slashAnim 0.6s ease-out forwards;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.9);
+        }
+
+        @keyframes slashAnim {
+            0% { transform: scale(0) rotate(-45deg); opacity: 1; }
+            50% { transform: scale(1.5) rotate(0deg); opacity: 1; }
+            100% { transform: scale(2) rotate(45deg); opacity: 0; }
+        }
+
+        /* ВСПЛЫВАЮЩИЕ ОЧКИ */
+        .score-popup {
+            position: fixed;
+            font-size: 2.5em;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 1000;
+            animation: scoreFloat 1s ease-out forwards;
+            text-shadow: 0 0 15px currentColor;
+        }
+
+        .score-popup.plus {
+            color: #4CAF50;
+        }
+
+        .score-popup.minus {
+            color: #FF6B6B;
+        }
+
+        @keyframes scoreFloat {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100px) scale(0.5); opacity: 0; }
+        }
+
+        /* ЧАСТИЦЫ */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            font-size: 1.5em;
+        }
+
+        @keyframes particleFloat {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0) rotate(360deg); opacity: 0; }
+        }
+
+        /* ЭКРАН РЕЗУЛЬТАТОВ */
+        .result-screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .result-screen.active {
+            display: flex;
+        }
+
+        .result-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 40px;
+            border: 5px solid #FFD700;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .result-title {
+            font-size: clamp(2.5em, 6vw, 4em);
+            color: #FFD700;
+            margin-bottom: 20px;
+        }
+
+        .result-title.winner {
+            color: #4CAF50;
+            animation: winner 1s ease-in-out infinite;
+        }
+
+        @keyframes winner {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .result-stat {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+        }
+
+        .result-label {
+            font-size: clamp(1em, 2vw, 1.2em);
+            color: #ccc;
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-size: clamp(1.8em, 4vw, 3em);
+            color: white;
+            font-weight: bold;
+        }
+
+        /* АДАПТИВНОСТЬ */
+        @media (max-width: 768px) {
+            .fruit {
+                width: 100px;
+                height: 100px;
+            }
+
+            .fruit-number {
+                font-size: 2em;
+            }
+
+            .game-header {
+                flex-direction: column;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .player-panel {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .fruit {
+                width: 90px;
+                height: 90px;
+            }
+
+            .fruit-number {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ГЛАВНОЕ МЕНЮ -->
+        <div class="menu-screen" id="menuScreen">
+            <div class="game-title">🥷 МАТЕМАТИЧЕСКИЙ<br>НИНДЗЯ</div>
+
+            <div class="info-box warning">
+                ⚠️ <strong>Внимание:</strong> Для игры через интернет нужна настройка сервера.<br>
+                Сейчас работает только <strong>локальная игра</strong> (в одном браузере, 2 вкладки)
+            </div>
+
+            <div class="menu-buttons">
+                <button class="menu-btn secondary" onclick="multiplayerManager.showMultiplayerMenu()">⚔️ ИГРАТЬ С ДРУГОМ (Локально)</button>
+                <button class="menu-btn" onclick="location.href='math-ninja-mvp.html'">🎮 ОДИНОЧНАЯ ИГРА</button>
+            </div>
+        </div>
+
+        <!-- ЭКРАН МУЛЬТИПЛЕЕРА -->
+        <div class="multiplayer-screen" id="multiplayerScreen">
+            <div class="multiplayer-container">
+                <div class="multiplayer-title">🎮 Локальный Мультиплеер</div>
+
+                <div class="info-box">
+                    💡 <strong>Как играть:</strong><br>
+                    1. Откройте эту страницу в <strong>2 вкладках браузера</strong><br>
+                    2. В первой вкладке создайте комнату<br>
+                    3. Во второй вкладке введите код и присоединитесь<br>
+                    4. Играйте!
+                </div>
+
+                <div class="input-group">
+                    <label>Ваше имя:</label>
+                    <input type="text" id="playerNameInput" placeholder="Введите имя" maxlength="15">
+                </div>
+
+                <div class="menu-buttons">
+                    <button class="menu-btn secondary" onclick="multiplayerManager.createRoom()">🎯 Создать комнату</button>
+                    <button class="menu-btn" onclick="multiplayerManager.showJoinRoom()">🔗 Присоединиться</button>
+                    <button class="menu-btn" onclick="multiplayerManager.backToMenu()">← Назад</button>
+                </div>
+
+                <!-- ЭКРАН ПРИСОЕДИНЕНИЯ -->
+                <div id="joinRoomSection" style="display: none; margin-top: 20px;">
+                    <div class="input-group">
+                        <label>Код комнаты:</label>
+                        <input type="text" id="roomCodeInput" placeholder="Введите код" maxlength="6">
+                    </div>
+                    <button class="menu-btn secondary" onclick="multiplayerManager.joinRoom()">Присоединиться</button>
+                </div>
+
+                <!-- ЭКРАН ОЖИДАНИЯ -->
+                <div id="waitingSection" style="display: none;">
+                    <div class="room-code-display">
+                        <div style="color: white; font-size: 1.2em; margin-bottom: 10px;">Код комнаты:</div>
+                        <div class="room-code-text" id="roomCodeDisplay">------</div>
+                    </div>
+                    <div class="waiting-message">Ожидание второго игрока...</div>
+                    <button class="menu-btn" onclick="multiplayerManager.cancelRoom()">Отменить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ИГРОВОЙ ЭКРАН -->
+        <div class="game-screen" id="gameScreen">
+            <div class="game-header">
+                <div class="player-panel">
+                    <div class="player-name" id="player1Name">Вы</div>
+                    <div class="player-score" id="player1Score">0</div>
+                </div>
+
+                <div class="timer" id="timer">60</div>
+
+                <div class="player-panel opponent">
+                    <div class="player-name" id="player2Name">Соперник</div>
+                    <div class="player-score" id="player2Score">0</div>
+                </div>
+            </div>
+
+            <div class="question-area">
+                <div class="question-display" id="question">8 + 7 = ?</div>
+            </div>
+
+            <div class="game-area" id="gameArea"></div>
+        </div>
+
+        <!-- ЭКРАН РЕЗУЛЬТАТОВ -->
+        <div class="result-screen" id="resultScreen">
+            <div class="result-container">
+                <div class="result-title" id="resultTitle">🏆 РЕЗУЛЬТАТ</div>
+
+                <div class="result-stats">
+                    <div class="result-stat">
+                        <div class="result-label">Ваши очки</div>
+                        <div class="result-value" id="finalMyScore">0</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-label">Соперник</div>
+                        <div class="result-value" id="finalOpponentScore">0</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-label">Правильных</div>
+                        <div class="result-value" id="finalCorrect">0</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-label">Ошибок</div>
+                        <div class="result-value" id="finalWrong">0</div>
+                    </div>
+                </div>
+
+                <div class="menu-buttons">
+                    <button class="menu-btn" onclick="multiplayerManager.backToMenu()">В меню</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Локальная база данных (localStorage) для мультиплеера
+        const LocalDB = {
+            setRoom(roomCode, data) {
+                localStorage.setItem('room_' + roomCode, JSON.stringify(data));
+                // Триггер события для других вкладок
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'room_' + roomCode,
+                    newValue: JSON.stringify(data)
+                }));
+            },
+
+            getRoom(roomCode) {
+                const data = localStorage.getItem('room_' + roomCode);
+                return data ? JSON.parse(data) : null;
+            },
+
+            removeRoom(roomCode) {
+                localStorage.removeItem('room_' + roomCode);
+            },
+
+            onRoomChange(roomCode, callback) {
+                const handler = (e) => {
+                    if (e.key === 'room_' + roomCode && e.newValue) {
+                        callback(JSON.parse(e.newValue));
+                    }
+                };
+                window.addEventListener('storage', handler);
+                return handler;
+            },
+
+            offRoomChange(handler) {
+                window.removeEventListener('storage', handler);
+            }
+        };
+
+        // =====================
+        // МАТЕМАТИЧЕСКИЙ ГЕНЕРАТОР
+        // =====================
+        const questionGenerator = {
+            generateQuestion() {
+                const operations = [
+                    { op: '+', calc: (a, b) => a + b },
+                    { op: '−', calc: (a, b) => a - b },
+                    { op: '×', calc: (a, b) => a * b }
+                ];
+
+                const operation = operations[Math.floor(Math.random() * operations.length)];
+                let a, b, answer;
+
+                if (operation.op === '+') {
+                    a = Math.floor(Math.random() * 20) + 1;
+                    b = Math.floor(Math.random() * 20) + 1;
+                } else if (operation.op === '−') {
+                    a = Math.floor(Math.random() * 20) + 10;
+                    b = Math.floor(Math.random() * a) + 1;
+                } else {
+                    a = Math.floor(Math.random() * 9) + 2;
+                    b = Math.floor(Math.random() * 9) + 2;
+                }
+
+                answer = operation.calc(a, b);
+
+                const wrongAnswers = [];
+                while (wrongAnswers.length < 2) {
+                    const wrong = answer + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 5) + 1);
+                    if (wrong > 0 && wrong !== answer && !wrongAnswers.includes(wrong)) {
+                        wrongAnswers.push(wrong);
+                    }
+                }
+
+                const allAnswers = [answer, ...wrongAnswers].sort(() => Math.random() - 0.5);
+
+                return {
+                    text: `${a} ${operation.op} ${b} = ?`,
+                    correct: answer,
+                    options: allAnswers
+                };
+            }
+        };
+
+        // =====================
+        // МЕНЕДЖЕР МУЛЬТИПЛЕЕРА
+        // =====================
+        const multiplayerManager = {
+            roomCode: null,
+            playerName: null,
+            isHost: false,
+            playerId: null,
+            gameState: null,
+            gameTimer: null,
+            spawnInterval: null,
+            storageHandler: null,
+
+            showMultiplayerMenu() {
+                document.getElementById('menuScreen').classList.add('hidden');
+                document.getElementById('multiplayerScreen').classList.add('active');
+            },
+
+            backToMenu() {
+                if (this.storageHandler) {
+                    LocalDB.offRoomChange(this.storageHandler);
+                }
+                if (this.gameTimer) clearInterval(this.gameTimer);
+                if (this.spawnInterval) clearInterval(this.spawnInterval);
+                if (this.roomCode && this.isHost) {
+                    LocalDB.removeRoom(this.roomCode);
+                }
+
+                document.getElementById('menuScreen').classList.remove('hidden');
+                document.getElementById('multiplayerScreen').classList.remove('active');
+                document.getElementById('gameScreen').classList.remove('active');
+                document.getElementById('resultScreen').classList.remove('active');
+                document.getElementById('waitingSection').style.display = 'none';
+                document.getElementById('joinRoomSection').style.display = 'none';
+            },
+
+            createRoom() {
+                const nameInput = document.getElementById('playerNameInput').value.trim();
+                if (!nameInput) {
+                    alert('Введите ваше имя!');
+                    return;
+                }
+
+                this.playerName = nameInput;
+                this.playerId = 'player1';
+                this.isHost = true;
+                this.roomCode = this.generateRoomCode();
+
+                const roomData = {
+                    host: this.playerName,
+                    player1: { name: this.playerName, score: 0, ready: true },
+                    player2: null,
+                    status: 'waiting',
+                    createdAt: Date.now()
+                };
+
+                LocalDB.setRoom(this.roomCode, roomData);
+
+                document.getElementById('roomCodeDisplay').textContent = this.roomCode;
+                document.getElementById('waitingSection').style.display = 'block';
+                document.getElementById('multiplayerScreen').querySelector('.menu-buttons').style.display = 'none';
+                document.querySelector('.input-group').style.display = 'none';
+                document.querySelector('.info-box').style.display = 'none';
+
+                this.listenToRoom();
+            },
+
+            showJoinRoom() {
+                document.getElementById('joinRoomSection').style.display = 'block';
+            },
+
+            joinRoom() {
+                const nameInput = document.getElementById('playerNameInput').value.trim();
+                const codeInput = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+
+                if (!nameInput) {
+                    alert('Введите ваше имя!');
+                    return;
+                }
+
+                if (!codeInput || codeInput.length !== 6) {
+                    alert('Введите корректный код комнаты!');
+                    return;
+                }
+
+                this.playerName = nameInput;
+                this.playerId = 'player2';
+                this.isHost = false;
+                this.roomCode = codeInput;
+
+                const room = LocalDB.getRoom(this.roomCode);
+
+                if (!room) {
+                    alert('Комната не найдена!');
+                    return;
+                }
+
+                if (room.player2) {
+                    alert('Комната уже заполнена!');
+                    return;
+                }
+
+                room.player2 = { name: this.playerName, score: 0, ready: true };
+                room.status = 'playing';
+                LocalDB.setRoom(this.roomCode, room);
+
+                this.listenToRoom();
+                this.startGame();
+            },
+
+            listenToRoom() {
+                this.storageHandler = LocalDB.onRoomChange(this.roomCode, (room) => {
+                    if (!room) {
+                        alert('Комната была закрыта');
+                        this.backToMenu();
+                        return;
+                    }
+
+                    if (room.status === 'playing' && this.isHost && !this.gameState) {
+                        this.startGame();
+                    }
+
+                    // Обновление очков соперника
+                    if (this.gameState && this.gameState.isPlaying) {
+                        const opponentId = this.playerId === 'player1' ? 'player2' : 'player1';
+                        if (room[opponentId]) {
+                            document.getElementById('player2Score').textContent = room[opponentId].score || 0;
+                        }
+                    }
+                });
+
+                // Периодическая проверка комнаты
+                const checkRoom = setInterval(() => {
+                    if (!this.gameState || !this.gameState.isPlaying) {
+                        clearInterval(checkRoom);
+                        return;
+                    }
+
+                    const room = LocalDB.getRoom(this.roomCode);
+                    if (room) {
+                        const opponentId = this.playerId === 'player1' ? 'player2' : 'player1';
+                        if (room[opponentId]) {
+                            document.getElementById('player2Score').textContent = room[opponentId].score || 0;
+                        }
+                    }
+                }, 500);
+            },
+
+            startGame() {
+                this.gameState = {
+                    score: 0,
+                    correct: 0,
+                    wrong: 0,
+                    timeLeft: 60,
+                    isPlaying: true,
+                    currentQuestion: null
+                };
+
+                document.getElementById('multiplayerScreen').classList.remove('active');
+                document.getElementById('gameScreen').classList.add('active');
+
+                document.getElementById('player1Name').textContent = this.playerName;
+                const room = LocalDB.getRoom(this.roomCode);
+                if (room) {
+                    const opponentId = this.playerId === 'player1' ? 'player2' : 'player1';
+                    document.getElementById('player2Name').textContent = room[opponentId]?.name || 'Соперник';
+                }
+
+                this.updateUI();
+                this.nextQuestion();
+                this.startTimer();
+                this.startSpawning();
+            },
+
+            generateRoomCode() {
+                return Math.random().toString(36).substr(2, 6).toUpperCase();
+            },
+
+            cancelRoom() {
+                if (this.roomCode) {
+                    LocalDB.removeRoom(this.roomCode);
+                }
+                this.backToMenu();
+            },
+
+            startTimer() {
+                this.gameTimer = setInterval(() => {
+                    this.gameState.timeLeft--;
+                    const timerEl = document.getElementById('timer');
+                    timerEl.textContent = this.gameState.timeLeft;
+
+                    if (this.gameState.timeLeft <= 10) {
+                        timerEl.classList.add('warning');
+                    }
+
+                    if (this.gameState.timeLeft <= 0) {
+                        this.endGame();
+                    }
+                }, 1000);
+            },
+
+            updateUI() {
+                document.getElementById('player1Score').textContent = this.gameState.score;
+            },
+
+            nextQuestion() {
+                if (!this.gameState.isPlaying) return;
+                this.gameState.currentQuestion = questionGenerator.generateQuestion();
+                document.getElementById('question').textContent = this.gameState.currentQuestion.text;
+            },
+
+            startSpawning() {
+                this.spawnFruit();
+                this.spawnInterval = setInterval(() => {
+                    if (this.gameState.isPlaying) {
+                        this.spawnFruit();
+                    }
+                }, 2500);
+            },
+
+            spawnFruit() {
+                if (!this.gameState.currentQuestion) return;
+
+                const option = this.gameState.currentQuestion.options[
+                    Math.floor(Math.random() * this.gameState.currentQuestion.options.length)
+                ];
+
+                const fruit = document.createElement('div');
+                fruit.className = 'fruit';
+
+                const startX = Math.random() * (window.innerWidth - 120);
+
+                fruit.style.left = startX + 'px';
+                fruit.style.bottom = '-120px';
+
+                fruit.innerHTML = `
+                    <div class="fruit-bg"></div>
+                    <div class="fruit-number">${option}</div>
+                `;
+
+                fruit.dataset.value = option;
+                fruit.dataset.correct = (option === this.gameState.currentQuestion.correct) ? 'true' : 'false';
+
+                fruit.addEventListener('click', (e) => this.slashFruit(fruit, e));
+                fruit.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    this.slashFruit(fruit, e.touches[0]);
+                });
+
+                document.getElementById('gameArea').appendChild(fruit);
+
+                const duration = 4500;
+                const maxHeight = window.innerHeight * 0.7;
+                const horizontalMove = (Math.random() - 0.5) * 150;
+
+                const startTime = Date.now();
+                const animate = () => {
+                    if (!this.gameState.isPlaying || fruit.classList.contains('slashed')) {
+                        if (!fruit.classList.contains('slashed')) {
+                            fruit.remove();
+                        }
+                        return;
+                    }
+
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    const parabola = -4 * progress * (progress - 1);
+                    const y = -maxHeight * parabola;
+                    const x = horizontalMove * progress;
+                    const rotation = progress * 720;
+
+                    fruit.style.transform = `translate(${x}px, ${y}px) rotate(${rotation}deg)`;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        fruit.remove();
+                    }
+                };
+
+                requestAnimationFrame(animate);
+            },
+
+            slashFruit(fruit, event) {
+                if (fruit.classList.contains('slashed')) return;
+
+                fruit.classList.add('slashed');
+
+                const value = parseInt(fruit.dataset.value);
+                const isCorrect = fruit.dataset.correct === 'true';
+
+                if (isCorrect) {
+                    this.gameState.score += 10;
+                    this.gameState.correct++;
+
+                    this.showScorePopup('+10', event.clientX, event.clientY, true);
+                    this.showSlashEffect(event.clientX, event.clientY);
+                    this.createParticles(event.clientX, event.clientY, '#4CAF50');
+
+                    // Обновить счёт в LocalDB
+                    const room = LocalDB.getRoom(this.roomCode);
+                    if (room) {
+                        room[this.playerId].score = this.gameState.score;
+                        LocalDB.setRoom(this.roomCode, room);
+                    }
+
+                    setTimeout(() => this.nextQuestion(), 300);
+                } else {
+                    this.gameState.score = Math.max(0, this.gameState.score - 5);
+                    this.gameState.wrong++;
+
+                    this.showScorePopup('-5', event.clientX, event.clientY, false);
+                    this.createParticles(event.clientX, event.clientY, '#FF6B6B');
+
+                    const room = LocalDB.getRoom(this.roomCode);
+                    if (room) {
+                        room[this.playerId].score = this.gameState.score;
+                        LocalDB.setRoom(this.roomCode, room);
+                    }
+                }
+
+                this.updateUI();
+
+                setTimeout(() => {
+                    if (fruit.parentNode) {
+                        fruit.remove();
+                    }
+                }, 500);
+            },
+
+            showSlashEffect(x, y) {
+                const slash = document.createElement('div');
+                slash.className = 'slash-effect';
+                slash.textContent = '⚔️';
+                slash.style.left = x + 'px';
+                slash.style.top = y + 'px';
+                document.body.appendChild(slash);
+
+                setTimeout(() => slash.remove(), 600);
+            },
+
+            showScorePopup(text, x, y, isPositive) {
+                const popup = document.createElement('div');
+                popup.className = 'score-popup ' + (isPositive ? 'plus' : 'minus');
+                popup.textContent = text;
+                popup.style.left = x + 'px';
+                popup.style.top = y + 'px';
+                document.body.appendChild(popup);
+
+                setTimeout(() => popup.remove(), 1000);
+            },
+
+            createParticles(x, y, color) {
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.textContent = '✨';
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    particle.style.color = color;
+                    particle.style.setProperty('--tx', (Math.random() - 0.5) * 200 + 'px');
+                    particle.style.setProperty('--ty', (Math.random() - 0.5) * 200 + 'px');
+                    particle.style.animation = `particleFloat ${0.8 + Math.random() * 0.4}s ease-out forwards`;
+                    document.body.appendChild(particle);
+
+                    setTimeout(() => particle.remove(), 1200);
+                }
+            },
+
+            endGame() {
+                this.gameState.isPlaying = false;
+                clearInterval(this.gameTimer);
+                clearInterval(this.spawnInterval);
+
+                document.getElementById('gameArea').innerHTML = '';
+
+                const room = LocalDB.getRoom(this.roomCode);
+                if (room) {
+                    const opponentId = this.playerId === 'player1' ? 'player2' : 'player1';
+                    const opponentScore = room[opponentId]?.score || 0;
+
+                    document.getElementById('finalMyScore').textContent = this.gameState.score;
+                    document.getElementById('finalOpponentScore').textContent = opponentScore;
+                    document.getElementById('finalCorrect').textContent = this.gameState.correct;
+                    document.getElementById('finalWrong').textContent = this.gameState.wrong;
+
+                    const resultTitle = document.getElementById('resultTitle');
+                    if (this.gameState.score > opponentScore) {
+                        resultTitle.textContent = '🏆 ПОБЕДА!';
+                        resultTitle.classList.add('winner');
+                    } else if (this.gameState.score < opponentScore) {
+                        resultTitle.textContent = '😢 ПОРАЖЕНИЕ';
+                    } else {
+                        resultTitle.textContent = '🤝 НИЧЬЯ';
+                    }
+
+                    document.getElementById('gameScreen').classList.remove('active');
+                    document.getElementById('resultScreen').classList.add('active');
+
+                    // Удалить комнату через 30 секунд
+                    if (this.isHost) {
+                        setTimeout(() => {
+                            LocalDB.removeRoom(this.roomCode);
+                        }, 30000);
+                    }
+                }
+            }
+        };
+
+        // Создание фона с сакурой
+        function createSakura() {
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const sakura = document.createElement('div');
+                    sakura.className = 'sakura';
+                    sakura.style.left = Math.random() * 100 + '%';
+                    sakura.style.animationDuration = (Math.random() * 3 + 5) + 's';
+                    sakura.style.animationDelay = Math.random() * 5 + 's';
+                    document.body.appendChild(sakura);
+                }, i * 200);
+            }
+        }
+
+        createSakura();
+
+        // Предотвращение скролла
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+    </script>
+</body>
+</html>
